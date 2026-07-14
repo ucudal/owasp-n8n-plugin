@@ -1,0 +1,10 @@
+---
+on: [push, pull_request]          # yamllint disable-line rule:truthy
+name: Integration tests
+
+permissions: 
+  contents: read
+
+jobs:
+  integration-tests:
+    uses: coreruleset/crs-plugin-test-action/.github/workflows/integration.yaml@dc6ec812db88f222ad2ca435f9bdb4e9f7a577a1 # v3.0.1
