@@ -154,6 +154,22 @@ BODY=$(jq -n --arg vs "$VS" --arg ss "$SS" --argjson ref "$IDX_REF" \
     kibanaSavedObjectMeta:{searchSourceJSON:$ss}},references:[$ref]}')
 put_object visualization viz-bar-categories "$BODY"
 
+# --- Tabla: conteo unico de rule ID ----------------------------------------
+VS=$(jq -nr '{
+  title:"WAF - Conteo de Rule ID", type:"table",
+  params:{perPage:10,showPartialRows:false,showMetricsAtAllLevels:false,showTotal:false,totalFunc:"sum",percentageCol:""},
+  aggs:[
+    {id:"1",enabled:true,type:"count",schema:"metric",params:{}},
+    {id:"2",enabled:true,type:"terms",schema:"bucket",params:{field:"transaction.messages.details.ruleId.keyword",orderBy:"1",order:"desc",size:200,otherBucket:false,otherBucketLabel:"Other",missingBucket:false,missingBucketLabel:"Missing"}}
+  ]
+} | tostring')
+SS=$(search_source '')
+BODY=$(jq -n --arg vs "$VS" --arg ss "$SS" --argjson ref "$IDX_REF" \
+  '{attributes:{title:"WAF - Conteo de Rule ID",visState:$vs,uiStateJSON:"{}",
+    description:"Conteo único de reglas WAF/ModSecurity que se disparan, ordenado de mayor a menor, para identificar cuáles reglas ajustar durante pruebas de ataque.",
+    kibanaSavedObjectMeta:{searchSourceJSON:$ss}},references:[$ref]}')
+put_object visualization viz-ruleid-count "$BODY"
+
 # ---------------------------------------------------------------------------
 # 3. Saved search: detalle de eventos
 # ---------------------------------------------------------------------------
@@ -264,4 +280,27 @@ BODY=$(jq -n --argjson panels "$PANELS" --argjson refs "$REFS" '{
 }')
 put_object dashboard dash-categories "$BODY"
 
-echo "Listo. Dashboards disponibles: WAF - Resumen General, WAF - Severidad, WAF - Categorías de Ataque."
+# --- Dashboard ranking de rule ID -------------------------------------------
+PANELS=$(jq -s '.' \
+  <(panel 1 0 0 24 15))
+REFS=$(jq -s '.' \
+  <(panel_ref 1 visualization viz-ruleid-count))
+BODY=$(jq -n --argjson panels "$PANELS" --argjson refs "$REFS" '{
+  attributes:{
+    title:"WAF - Rule ID Ranking",
+    hits:0,
+    description:"Dashboard para identificar las reglas WAF/ModSecurity que se disparan con mayor frecuencia al atacar la aplicación, para priorizar su ajuste.",
+    panelsJSON:($panels|tostring),
+    optionsJSON:"{\"useMargins\":true,\"hidePanelTitles\":false}",
+    version:1,
+    timeRestore:true,
+    timeFrom:"now-7d",
+    timeTo:"now",
+    refreshInterval:{pause:true,value:0},
+    kibanaSavedObjectMeta:{searchSourceJSON:"{\"query\":{\"query\":\"\",\"language\":\"kuery\"},\"filter\":[]}"}
+  },
+  references:$refs
+}')
+put_object dashboard dash-ruleid-ranking "$BODY"
+
+echo "Listo. Dashboards disponibles: WAF - Resumen General, WAF - Severidad, WAF - Categorías de Ataque, WAF - Rule ID Ranking."
