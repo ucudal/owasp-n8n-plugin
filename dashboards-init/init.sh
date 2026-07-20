@@ -1,5 +1,5 @@
 #!/bin/sh
-# Crea el index patten y los dashboards de OpenSearch Dashboards vía Saved Objects API.
+# Crea el index pattern y los dashboards de OpenSearch Dashboards vía Saved Objects API.
 
 set -e
 
@@ -28,16 +28,16 @@ put_object() {
 }
 
 # ---------------------------------------------------------------------------
-# 1. Index patten
+# 1. Index pattern
 # ---------------------------------------------------------------------------
-echo "Creando index patten modsec-logs*..."
-put_object index-patten modsec-logs \
+echo "Creando index pattern modsec-logs*..."
+put_object index-pattern modsec-logs \
   "$(jq -n '{attributes:{title:"modsec-logs*",timeFieldName:"@timestamp"}}')"
 
 put_object config 2.15.0 \
   "$(jq -n '{attributes:{defaultIndex:"modsec-logs"}}')"
 
-IDX_REF='{"name":"kibanaSavedObjectMeta.searchSourceJSON.index","type":"index-patten","id":"modsec-logs"}'
+IDX_REF='{"name":"kibanaSavedObjectMeta.searchSourceJSON.index","type":"index-pattern","id":"modsec-logs"}'
 
 search_source() {
   jq -nr --arg q "$1" --argjson ref "$IDX_REF" \
@@ -115,7 +115,7 @@ VS=$(jq -nr '{
       {input:{query:"transaction.messages: { details.severity: \"1\" }",language:"kuery"},label:"1 - Alert"},
       {input:{query:"transaction.messages: { details.severity: \"2\" }",language:"kuery"},label:"2 - Critical"},
       {input:{query:"transaction.messages: { details.severity: \"3\" }",language:"kuery"},label:"3 - Error"},
-      {input:{query:"transaction.messages: { details.severity: \"4\" }",language:"kuery"},label:"4 - Waning"},
+      {input:{query:"transaction.messages: { details.severity: \"4\" }",language:"kuery"},label:"4 - Warning"},
       {input:{query:"transaction.messages: { details.severity: \"5\" }",language:"kuery"},label:"5 - Notice"}
     ]}}
   ]
