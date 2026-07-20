@@ -16,6 +16,7 @@ else
   echo "-> .env ya existe, no se toca."
 fi
 
+
 mkdir -p rules
 for f in \
   "rules/REQUEST-900-EXCLUSION-RULES-BEFORE-CRS.conf" \
