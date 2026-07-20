@@ -67,6 +67,7 @@ services:
       SERVER_TOKENS: "off"
 
     volumes:
+      - ./nginx/proxy_backend.conf.template:/etc/nginx/templates/includes/proxy_backend.conf.template:ro
       - ./rules/REQUEST-900-EXCLUSION-RULES-BEFORE-CRS.conf:/etc/modsecurity.d/owasp-crs/rules/REQUEST-900-EXCLUSION-RULES-BEFORE-CRS.conf:ro
       - ./rules/RESPONSE-999-EXCLUSION-RULES-AFTER-CRS.conf:/etc/modsecurity.d/owasp-crs/rules/RESPONSE-999-EXCLUSION-RULES-AFTER-CRS.conf:ro
 
