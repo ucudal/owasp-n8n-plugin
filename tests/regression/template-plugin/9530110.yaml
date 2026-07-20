@@ -1,0 +1,21 @@
+---
+meta:
+  author: "GitHub Copilot"
+  description: "Regression test for the credentials endpoint exclusion rule"
+rule_id: 9530110
+tests:
+  - test_id: 1
+    desc: Ensure the credentials endpoint does not trigger CRS rule 930130.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+          port: 80
+          method: GET
+          uri: /types/credentials.json
+        output:
+          log:
+            no_expect_ids: [930130]
