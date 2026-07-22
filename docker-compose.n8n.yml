@@ -1,9 +1,9 @@
-name: n8n-crs-lab
+name: n8n-standalone
 
 services:
   n8n:
     image: docker.n8n.io/n8nio/n8n:2.29.10
-    container_name: n8n-app
+    container_name: n8n-standalone-app
     restart: unless-stopped
 
     environment:
@@ -11,8 +11,8 @@ services:
       N8N_PORT: 5678
       N8N_PROTOCOL: http
 
-      N8N_EDITOR_BASE_URL: http://localhost:8080/
-      WEBHOOK_URL: http://localhost:8080/
+      N8N_EDITOR_BASE_URL: http://localhost:8081/
+      WEBHOOK_URL: http://localhost:8081/
       N8N_PROXY_HOPS: 1
 
       N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
@@ -25,14 +25,14 @@ services:
       - "5678"
 
     volumes:
-      - n8n_data:/home/node/.n8n
+      - n8n_data_standalone:/home/node/.n8n
 
     networks:
-      - protected_network
+      - standalone_protected
 
   waf:
     image: owasp/modsecurity-crs:4.28.0-nginx-202607100407
-    container_name: n8n-waf
+    container_name: n8n-standalone-waf
     restart: unless-stopped
 
     depends_on:
@@ -40,7 +40,7 @@ services:
       - fluent-bit
 
     ports:
-      - "8080:8080"
+      - "8081:8080"
 
     environment:
       BACKEND: http://n8n:5678
@@ -48,51 +48,44 @@ services:
       SERVER_NAME: localhost
       PORT: "8080"
 
-      # On bloquea, DetectionOnly solo registra
       MODSEC_RULE_ENGINE: ${MODSEC_RULE_ENGINE}
 
       MODSEC_AUDIT_ENGINE: RelevantOnly
       MODSEC_AUDIT_LOG: /dev/stdout
       MODSEC_AUDIT_LOG_FORMAT: JSON
 
-      BLOCKING_PARANOIA: "2"
-      DETECTION_PARANOIA: "3"
+      BLOCKING_PARANOIA: "0"
+      DETECTION_PARANOIA: "1"
       ANOMALY_INBOUND: "5"
       ANOMALY_OUTBOUND: "4"
       REPORTING_LEVEL: "2"
 
       NGINX_X_FORWARDED_PROTO: http
-      NGINX_X_FORWARDED_PORT: "8080"
+      NGINX_X_FORWARDED_PORT: "8081"
 
       SERVER_TOKENS: "off"
-
-    volumes:
-      - ./nginx/proxy_backend.conf.template:/etc/nginx/templates/includes/proxy_backend.conf.template:ro
-      - ./rules/REQUEST-900-EXCLUSION-RULES-BEFORE-CRS.conf:/etc/modsecurity.d/owasp-crs/rules/REQUEST-900-EXCLUSION-RULES-BEFORE-CRS.conf:ro
-      - ./rules/RESPONSE-999-EXCLUSION-RULES-AFTER-CRS.conf:/etc/modsecurity.d/owasp-crs/rules/RESPONSE-999-EXCLUSION-RULES-AFTER-CRS.conf:ro
 
     logging:
       driver: fluentd
       options:
-        fluentd-address: localhost:24224
+        fluentd-address: localhost:24225
         fluentd-async: "true"
         tag: waf.modsecurity
 
     networks:
-      - protected_network
-      - logging_network
+      - standalone_protected
+      - standalone_logging
 
   opensearch:
     image: opensearchproject/opensearch:2.15.0
-    container_name: opensearch
+    container_name: n8n-standalone-opensearch
     restart: unless-stopped
     environment:
-      - cluster.name=waf-logs-cluster
-      - node.name=opensearch-node1
+      - cluster.name=standalone-waf-cluster
+      - node.name=standalone-opensearch-node1
       - discovery.type=single-node
       - bootstrap.memory_lock=true
       - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
-      # deshabilitado a propósito, es un lab local
       - "DISABLE_SECURITY_PLUGIN=true"
       - "DISABLE_INSTALL_DEMO_CONFIG=true"
     ulimits:
@@ -103,11 +96,11 @@ services:
         soft: 65536
         hard: 65536
     volumes:
-      - opensearch_data:/usr/share/opensearch/data
+      - opensearch_data_standalone:/usr/share/opensearch/data
     ports:
-      - "9200:9200"
+      - "9300:9200"
     networks:
-      - logging_network
+      - standalone_logging
     healthcheck:
       test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q '\"status\"' || exit 1"]
       interval: 15s
@@ -116,40 +109,39 @@ services:
 
   opensearch-dashboards:
     image: opensearchproject/opensearch-dashboards:2.15.0
-    container_name: opensearch-dashboards
+    container_name: n8n-standalone-dashboards
     restart: unless-stopped
     environment:
       - OPENSEARCH_HOSTS=["http://opensearch:9200"]
       - DISABLE_SECURITY_DASHBOARDS_PLUGIN=true
     ports:
-      - "5601:5601"
+      - "5602:5601"
     depends_on:
       opensearch:
         condition: service_healthy
     networks:
-      - logging_network
+      - standalone_logging
 
-  # Crea el index pattern y los dashboards (ver dashboards-init/init.sh)
   dashboards-init:
     image: alpine:3.20
-    container_name: opensearch-dashboards-init
+    container_name: n8n-standalone-dashboards-init
     depends_on:
       opensearch-dashboards:
         condition: service_started
     volumes:
       - ./dashboards-init/init.sh:/init.sh:ro
     networks:
-      - logging_network
+      - standalone_logging
     restart: "no"
     entrypoint: >
       sh -c "apk add --no-cache bash >/dev/null 2>&1 && bash /init.sh"
 
   fluent-bit:
     image: fluent/fluent-bit:3.1
-    container_name: fluent-bit
+    container_name: n8n-standalone-fluent-bit
     restart: unless-stopped
     ports:
-      - "24224:24224"
+      - "24225:24224"
     volumes:
       - ./fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf:ro
       - ./parsers.conf:/fluent-bit/etc/parsers.conf:ro
@@ -157,18 +149,16 @@ services:
       opensearch:
         condition: service_healthy
     networks:
-      - logging_network
+      - standalone_logging
 
-  # Crea el index template con mapping nested para transaction.messages
-  # antes de que lleguen los primeros documentos
   opensearch-init:
     image: curlimages/curl:8.10.1
-    container_name: opensearch-init
+    container_name: n8n-standalone-opensearch-init
     depends_on:
       opensearch:
         condition: service_healthy
     networks:
-      - logging_network
+      - standalone_logging
     restart: "no"
     entrypoint: >
       sh -c "
@@ -179,11 +169,11 @@ services:
       "
 
 volumes:
-  n8n_data:
-  opensearch_data:
+  n8n_data_standalone:
+  opensearch_data_standalone:
 
 networks:
-  protected_network:
+  standalone_protected:
     driver: bridge
-  logging_network:
+  standalone_logging:
     driver: bridge

@@ -13,18 +13,37 @@ until curl -s -o /dev/null "$OSD/api/status"; do
   echo "  ...todavia no responde, reintentando"
   sleep 3
 done
-echo "Dashboards arriba."
+echo "Dashboards arriba. Esperando 5s para evitar race condition..."
+sleep 5
 
 put_object() {
-  code=$(curl -s -o /tmp/resp.json -w "%{http_code}" -X POST \
-    "$OSD/api/saved_objects/$1/$2?overwrite=true" \
-    -H "osd-xsrf: true" -H "Content-Type: application/json" \
-    -d "$3")
-  echo "  [$code] $1/$2"
-  if [ "$code" -ge 400 ]; then
-    cat /tmp/resp.json
-    echo ""
-  fi
+  local type="$1"
+  local id="$2"
+  local data="$3"
+  local retries=5
+  local delay=3
+  local attempt=1
+  while [ "$attempt" -le "$retries" ]; do
+    code=$(curl -s -o /tmp/resp.json -w "%{http_code}" -X POST \
+      "$OSD/api/saved_objects/$type/$id?overwrite=true" \
+      -H "osd-xsrf: true" -H "Content-Type: application/json" \
+      -d "$data")
+    echo "  [$code] $type/$id (intento $attempt/$retries)"
+    if [ "$code" = "200" ]; then
+      return 0
+    fi
+    if [ "$code" = "503" ]; then
+      echo "    OpenSearch Dashboards aun no listo, reintentando en ${delay}s..."
+    else
+      cat /tmp/resp.json
+      echo ""
+      return 1
+    fi
+    sleep "$delay"
+    attempt=$((attempt + 1))
+  done
+  echo "  ERROR: No se pudo crear $type/$id tras $retries intentos"
+  return 1
 }
 
 # ---------------------------------------------------------------------------
@@ -303,4 +322,59 @@ BODY=$(jq -n --argjson panels "$PANELS" --argjson refs "$REFS" '{
 }')
 put_object dashboard dash-ruleid-ranking "$BODY"
 
-echo "Listo. Dashboards disponibles: WAF - Resumen General, WAF - Severidad, WAF - Categorías de Ataque, WAF - Rule ID Ranking."
+# ---------------------------------------------------------------------------
+# 5. N8N Impact Analysis
+# ---------------------------------------------------------------------------
+echo "Creando elementos de impacto en n8n..."
+
+# --- Saved search: eventos con detalle de impacto en n8n ---
+SS=$(search_source '')
+BODY=$(jq -n --arg ss "$SS" --argjson ref "$IDX_REF" \
+  '{attributes:{title:"WAF - Eventos por endpoint",description:"",
+    columns:["@timestamp","transaction.client_ip","transaction.request.method","transaction.request.uri","transaction.messages.details.ruleId","transaction.messages.details.severity"],
+    sort:[["@timestamp","desc"]],
+    kibanaSavedObjectMeta:{searchSourceJSON:$ss}},references:[$ref]}')
+put_object search search-n8n-impact-events "$BODY"
+
+# --- Table: endpoints grouped by hits ---
+VS=$(jq -nr '{
+  title:"WAF - Endpoints mas impactados", type:"table",
+  params:{perPage:25,showPartialRows:false,showMetricsAtAllLevels:false,showTotal:true,totalFunc:"sum"},
+  aggs:[
+    {id:"1",enabled:true,type:"count",schema:"metric",params:{}},
+    {id:"2",enabled:true,type:"terms",schema:"bucket",params:{field:"transaction.request.uri.keyword",orderBy:"1",order:"desc",size:50,otherBucket:false,missingBucket:false}}
+  ]
+} | tostring')
+SS=$(search_source '')
+BODY=$(jq -n --arg vs "$VS" --arg ss "$SS" --argjson ref "$IDX_REF" \
+  '{attributes:{title:"WAF - Endpoints mas impactados",visState:$vs,uiStateJSON:"{}",
+    description:"Endpoints de n8n que disparan reglas CRS, ordenados por frecuencia de impacto.",
+    kibanaSavedObjectMeta:{searchSourceJSON:$ss}},references:[$ref]}')
+put_object visualization viz-n8n-endpoint-hits "$BODY"
+
+# --- Dashboard: WAF - Impacto en N8N ---
+PANELS=$(jq -s '.' \
+  <(panel 1 0 0 48 16) \
+  <(panel 2 0 16 48 24))
+REFS=$(jq -s '.' \
+  <(panel_ref 1 visualization viz-n8n-endpoint-hits) \
+  <(panel_ref 2 search search-n8n-impact-events))
+BODY=$(jq -n --argjson panels "$PANELS" --argjson refs "$REFS" '{
+  attributes:{
+    title:"WAF - Impacto en N8N",
+    hits:0,
+    description:("Analisis de impacto de CRS sobre endpoints de n8n\n\nCobertura por exclusiones aplicadas:\n  /rest/telemetry/proxy/* -> Rule 934110 (SSRF) Excluido\n  /types/credentials.json -> Rule 930130 (Path Traversal) Excluido\n  POST /rest/workflows -> Rule 934200 (SSTI) Excluido\n  /rest/ph/... con text/plain -> Rule 920420 Excluido\n  PATCH /rest/workflows/* -> Rule 911100 Excluido\n  /rest/ph/flags -> Rule 932260 (RCE) Excluido\n  /rest/workflows con HTML -> Rule 921130 Excluido\n\nATENCION: POST /rest/workflows dispara Rules 930120 y 942190 NO excluidas\n  bloquearian guardar workflows si se activa el bloqueo.\nATENCION: PATCH /rest/me/settings dispara Rule 911100 NO excluida"),
+    panelsJSON:($panels|tostring),
+    optionsJSON:"{\"useMargins\":true,\"hidePanelTitles\":false}",
+    version:1,
+    timeRestore:true,
+    timeFrom:"now-24h",
+    timeTo:"now",
+    refreshInterval:{pause:false,value:10000},
+    kibanaSavedObjectMeta:{searchSourceJSON:"{\"query\":{\"query\":\"\",\"language\":\"kuery\"},\"filter\":[]}"}
+  },
+  references:$refs
+}')
+put_object dashboard dash-n8n-impact-analysis "$BODY"
+
+echo "Listo. Dashboards disponibles: WAF - Resumen General, WAF - Severidad, WAF - Categorias de Ataque, WAF - Rule ID Ranking, WAF - Impacto en N8N."
