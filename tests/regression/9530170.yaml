@@ -1,0 +1,32 @@
+---
+meta:
+  author: "Martina Laventure"
+  description: "Regression test for the workflow file selector exclusion rule"
+rule_id: 9530170
+tests:
+  - test_id: 1
+    desc: Ensure a file path in a Read/Write Files from Disk node does not trigger CRS rule 930100.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json
+            Content-Type: application/json
+          port: 80
+          method: POST
+          uri: /rest/workflows
+          data: |
+            {
+              "nodes": [
+                {
+                  "parameters": {
+                    "fileSelector": "/etc/passwd"
+                  }
+                }
+              ]
+            }
+        output:
+          log:
+            no_expect_ids: [930100]
