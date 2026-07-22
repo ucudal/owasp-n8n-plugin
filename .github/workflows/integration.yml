@@ -2,9 +2,84 @@
 on: [push, pull_request]          # yamllint disable-line rule:truthy
 name: Integration tests
 
-permissions: 
+permissions:
   contents: read
+
+env:
+  GO_FTW_VERSION: v2.1.0
 
 jobs:
   integration-tests:
-    uses: coreruleset/crs-plugin-test-action/.github/workflows/integration.yaml@dc6ec812db88f222ad2ca435f9bdb4e9f7a577a1 # v3.0.1
+    name: modsecurity-test (${{ matrix.backend }}, ${{ matrix.crs-ref }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        backend: [apache, nginx]
+        crs-ref: [main, v4.25.1]
+
+    steps:
+      - name: Checkout plugin
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
+
+      - name: Checkout CRS
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          repository: coreruleset/coreruleset
+          ref: ${{ matrix.crs-ref }}
+          path: crs
+          persist-credentials: false
+
+      - name: Install go-ftw
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p tests/integration
+          gh release download -R coreruleset/go-ftw \
+            -p 'ftw_*_linux_amd64.tar.gz' -O - \
+            "${GO_FTW_VERSION}" | tar -xzf - ftw
+          curl -fsSL \
+            https://raw.githubusercontent.com/coreruleset/crs-plugin-test-action/dc6ec812db88f222ad2ca435f9bdb4e9f7a577a1/tests/integration/docker-compose.yml \
+            -o tests/integration/docker-compose.yml
+
+      - name: Start ${{ matrix.backend }}
+        env:
+          BACKEND: ${{ matrix.backend }}
+        run: |
+          mkdir -p "tests/logs/${BACKEND}"
+          chmod a+rw "tests/logs/${BACKEND}"
+          docker compose \
+            -f tests/integration/docker-compose.yml \
+            -f tests/integration/docker-compose.override.yml \
+            up -d "${BACKEND}"
+
+          for attempt in {1..30}; do
+            if curl -fsS http://127.0.0.1/ >/dev/null; then
+              exit 0
+            fi
+            if [ "$(docker inspect -f '{{.State.Running}}' "${BACKEND}")" != true ]; then
+              docker logs "${BACKEND}"
+              exit 1
+            fi
+            sleep 1
+          done
+
+          docker logs "${BACKEND}"
+          exit 1
+
+      - name: Run plugin tests
+        env:
+          FTW_LOGFILE: tests/logs/${{ matrix.backend }}/error.log
+        run: |
+          ./ftw check -d tests/regression
+          ./ftw run -d tests/regression --show-failures-only
+
+      - name: Tear down tests
+        if: always()
+        run: |
+          docker compose \
+            -f tests/integration/docker-compose.yml \
+            -f tests/integration/docker-compose.override.yml \
+            down -t 0
