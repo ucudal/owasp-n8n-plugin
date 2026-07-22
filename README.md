@@ -29,11 +29,14 @@ Usar n8n normal en http://localhost:8080.
 Todo el trafico pasa por el WAF.
 
 Para ver los logs del WAF, entrá a Dashboards (http://localhost:5601). 
-Ya viene. con 3 dashboards predefinidos con vistas generales que eliminan todo el "ruido".
+Ya viene con 6 dashboards predefinidos con vistas generales que eliminan todo el "ruido".
 
 - **WAF - Resumen General**
 - **WAF - Severidad**
 - **WAF - Categorías de Ataque**
+- **WAF - Rule ID Ranking**
+- **WAF - Impacto en N8N**
+- **WAF - Workflows Bloqueados**
 
 ## Deteccion vs. bloqueo
 
