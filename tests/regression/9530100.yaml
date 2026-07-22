@@ -1,0 +1,39 @@
+---
+meta:
+  author: "Facundo Píriz"
+  description: "Regression tests for the telemetry proxy exclusion rule"
+rule_id: 9530100
+tests:
+  - test_id: 1
+    desc: Ensure the telemetry proxy endpoint does not trigger CRS rule 934110.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+          port: 80
+          method: GET
+          uri: /rest/telemetry/proxy/v1/status
+        output:
+          log:
+            no_expect_ids: [934110]
+  - test_id: 2
+    desc: Ensure a telemetry proxy POST request does not trigger CRS rule 934110.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json
+            Content-Type: application/json
+          port: 80
+          method: POST
+          uri: /rest/telemetry/proxy/v1/track
+          data: |
+            {"event":"workflow.created","source":"n8n"}
+        output:
+          log:
+            no_expect_ids: [934110]
