@@ -63,4 +63,3 @@ tests:
         output:
           log:
             expect_ids: [921130]
-
