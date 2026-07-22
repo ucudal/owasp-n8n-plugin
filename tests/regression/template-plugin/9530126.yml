@@ -1,0 +1,33 @@
+---
+meta:
+  author: "Mateo Tonkovic"
+  description: "Regression test for the HTML template UTF-8 charset exclusion rule"
+rule_id: 9530130
+tests:
+  - test_id: 1
+    desc: Ensure defining UTF-8 encoding in an HTML template does not trigger CRS rule 941260.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json
+            Content-Type: application/json
+          port: 80
+          method: PATCH
+          uri: /rest/workflows/abc123
+          data: |
+            {
+              "nodes": [
+                {},
+                {
+                  "parameters": {
+                    "html": "<meta charset=\"UTF-8\">"
+                  }
+                }
+              ]
+            }
+        output:
+          log:
+            no_expect_ids: [941260]
