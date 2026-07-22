@@ -32,18 +32,17 @@ put_object() {
     if [ "$code" = "200" ]; then
       return 0
     fi
-    if [ "$code" = "503" ]; then
-      echo "    OpenSearch Dashboards aun no listo, reintentando en ${delay}s..."
+    if [ "$attempt" -lt "$retries" ]; then
+      echo "    No es 200, reintentando en ${delay}s..."
     else
       cat /tmp/resp.json
       echo ""
+      echo "  ERROR: No se pudo crear $type/$id tras $retries intentos"
       return 1
     fi
     sleep "$delay"
     attempt=$((attempt + 1))
   done
-  echo "  ERROR: No se pudo crear $type/$id tras $retries intentos"
-  return 1
 }
 
 # ---------------------------------------------------------------------------
