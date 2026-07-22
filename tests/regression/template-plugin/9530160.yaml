@@ -1,0 +1,60 @@
+---
+meta:
+  author: "Franco"
+  description: "Regression test for the workflows HTML <meta> exclusion rule"
+rule_id: 9530160
+tests:
+  - test_id: 1
+    desc: Ensure an HTML template with <meta> does not trigger CRS rule 941160.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+            Content-Type: application/json
+          port: 80
+          method: POST
+          uri: /rest/workflows
+          data: |
+            {"html":"<html><head><meta charset='UTF-8'></head><body>ok</body></html>"}
+        output:
+          log:
+            no_expect_ids: [941160]
+  - test_id: 2
+    desc: Ensure a workflows sub-path does not trigger CRS rule 941160.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+            Content-Type: application/json
+          port: 80
+          method: POST
+          uri: /rest/workflows/abc123
+          data: |
+            {"html":"<html><head><meta charset='UTF-8'></head><body>ok</body></html>"}
+        output:
+          log:
+            no_expect_ids: [941160]
+  - test_id: 3
+    desc: Ensure the anchored regex does not create a prefix-bypass hole (e.g. /rest/workflowsFALSO).
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+            Content-Type: application/json
+          port: 80
+          method: POST
+          uri: /rest/workflowsFALSO
+          data: |
+            {"html":"<html><head><meta charset='UTF-8'></head><body>ok</body></html>"}
+        output:
+          log:
+            expect_ids: [941160]
