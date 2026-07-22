@@ -377,4 +377,165 @@ BODY=$(jq -n --argjson panels "$PANELS" --argjson refs "$REFS" '{
 }')
 put_object dashboard dash-n8n-impact-analysis "$BODY"
 
-echo "Listo. Dashboards disponibles: WAF - Resumen General, WAF - Severidad, WAF - Categorias de Ataque, WAF - Rule ID Ranking, WAF - Impacto en N8N."
+# ---------------------------------------------------------------------------
+# 6. Workflow Blocked Events Dashboard
+# ---------------------------------------------------------------------------
+echo "Creando elementos de workflows bloqueados..."
+
+# --- Saved search: eventos en endpoints de workflows ---
+SS=$(search_source 'transaction.request.uri: /rest/workflows*')
+BODY=$(jq -n --arg ss "$SS" --argjson ref "$IDX_REF" \
+  '{attributes:{title:"WAF - Eventos de workflows",description:"",
+    columns:["@timestamp","transaction.client_ip","transaction.request.method","transaction.request.uri","transaction.messages.details.ruleId","transaction.messages.details.severity"],
+    sort:[["@timestamp","desc"]],
+    kibanaSavedObjectMeta:{searchSourceJSON:$ss}},references:[$ref]}')
+put_object search search-workflows-events "$BODY"
+
+# --- Metric: total de eventos en workflows ---
+VS=$(jq -nr '{
+  title:"Workflows - Total de eventos", type:"metric",
+  params:{addTooltip:true,addLegend:false,type:"metric",
+    metric:{percentageMode:false,useRanges:false,colorSchema:"Green to Red",
+      metricColorMode:"None",colorsRange:[{from:0,to:10000}],
+      labels:{show:true},invertColors:false,
+      style:{bgFill:"#000",bgColor:false,labelColor:false,subText:"",fontSize:60}}},
+  aggs:[{id:"1",enabled:true,type:"count",schema:"metric",params:{}}]
+} | tostring')
+SS=$(search_source 'transaction.request.uri: /rest/workflows*')
+BODY=$(jq -n --arg vs "$VS" --arg ss "$SS" --argjson ref "$IDX_REF" \
+  '{attributes:{title:"Workflows - Total de eventos",visState:$vs,uiStateJSON:"{}",description:"",
+    kibanaSavedObjectMeta:{searchSourceJSON:$ss}},references:[$ref]}')
+put_object visualization viz-workflows-total "$BODY"
+
+# --- Histograma: eventos en el tiempo para workflows ---
+VS=$(jq -nr '{
+  title:"Workflows - Eventos en el tiempo", type:"histogram",
+  params:{type:"histogram",grid:{categoryLines:false},
+    categoryAxes:[{id:"CategoryAxis-1",type:"category",position:"bottom",show:true,style:{},scale:{type:"linear"},labels:{show:true,filter:true,truncate:100},title:{}}],
+    valueAxes:[{id:"ValueAxis-1",name:"LeftAxis-1",type:"value",position:"left",show:true,style:{},scale:{type:"linear",mode:"normal"},labels:{show:true,rotate:0,filter:false,truncate:100},title:{text:"Cantidad"}}],
+    seriesParams:[{show:true,type:"histogram",mode:"stacked",data:{label:"Count",id:"1"},valueAxis:"ValueAxis-1",drawLinesBetweenPoints:true,showCirclesOnLines:true,interpolate:"linear",lineWidth:2}],
+    addTooltip:true,addLegend:true,legendPosition:"right",times:[],addTimeMarker:false},
+  aggs:[
+    {id:"1",enabled:true,type:"count",schema:"metric",params:{}},
+    {id:"2",enabled:true,type:"date_histogram",schema:"segment",params:{field:"@timestamp",interval:"auto",min_doc_count:1,extended_bounds:{}}}
+  ]
+} | tostring')
+SS=$(search_source 'transaction.request.uri: /rest/workflows*')
+BODY=$(jq -n --arg vs "$VS" --arg ss "$SS" --argjson ref "$IDX_REF" \
+  '{attributes:{title:"Workflows - Eventos en el tiempo",visState:$vs,uiStateJSON:"{}",description:"",
+    kibanaSavedObjectMeta:{searchSourceJSON:$ss}},references:[$ref]}')
+put_object visualization viz-workflows-timeline "$BODY"
+
+# --- Tabla: reglas que disparan en endpoints de workflows ---
+VS=$(jq -nr '{
+  title:"Workflows - Reglas que disparan", type:"table",
+  params:{perPage:10,showPartialRows:false,showMetricsAtAllLevels:false,showTotal:false,totalFunc:"sum",percentageCol:""},
+  aggs:[
+    {id:"1",enabled:true,type:"count",schema:"metric",params:{}},
+    {id:"2",enabled:true,type:"terms",schema:"bucket",params:{field:"transaction.messages.details.ruleId.keyword",orderBy:"1",order:"desc",size:50,otherBucket:false,otherBucketLabel:"Other",missingBucket:false,missingBucketLabel:"Missing"}}
+  ]
+} | tostring')
+SS=$(search_source 'transaction.request.uri: /rest/workflows*')
+BODY=$(jq -n --arg vs "$VS" --arg ss "$SS" --argjson ref "$IDX_REF" \
+  '{attributes:{title:"Workflows - Reglas que disparan",visState:$vs,uiStateJSON:"{}",
+    description:"Reglas WAF que se disparan en endpoints de workflows de n8n, ordenadas por frecuencia.",
+    kibanaSavedObjectMeta:{searchSourceJSON:$ss}},references:[$ref]}')
+put_object visualization viz-workflows-ruleids "$BODY"
+
+# --- Tabla: endpoints de workflows mas afectados ---
+VS=$(jq -nr '{
+  title:"Workflows - Endpoints afectados", type:"table",
+  params:{perPage:25,showPartialRows:false,showMetricsAtAllLevels:false,showTotal:true,totalFunc:"sum"},
+  aggs:[
+    {id:"1",enabled:true,type:"count",schema:"metric",params:{}},
+    {id:"2",enabled:true,type:"terms",schema:"bucket",params:{field:"transaction.request.uri.keyword",orderBy:"1",order:"desc",size:50,otherBucket:false,missingBucket:false}}
+  ]
+} | tostring')
+SS=$(search_source 'transaction.request.uri: /rest/workflows*')
+BODY=$(jq -n --arg vs "$VS" --arg ss "$SS" --argjson ref "$IDX_REF" \
+  '{attributes:{title:"Workflows - Endpoints afectados",visState:$vs,uiStateJSON:"{}",
+    description:"Endpoints de workflows de n8n que disparan reglas CRS, ordenados por frecuencia.",
+    kibanaSavedObjectMeta:{searchSourceJSON:$ss}},references:[$ref]}')
+put_object visualization viz-workflows-endpoints "$BODY"
+
+# --- Pie: por metodo HTTP ---
+VS=$(jq -nr '{
+  title:"Workflows - Por metodo HTTP", type:"pie",
+  params:{type:"pie",addTooltip:true,addLegend:true,legendPosition:"right",isDonut:true,
+    labels:{show:false,values:true,last_level:true,truncate:100}},
+  aggs:[
+    {id:"1",enabled:true,type:"count",schema:"metric",params:{}},
+    {id:"2",enabled:true,type:"filters",schema:"segment",params:{filters:[
+      {input:{query:"transaction.request.method: GET",language:"kuery"},label:"GET"},
+      {input:{query:"transaction.request.method: POST",language:"kuery"},label:"POST"},
+      {input:{query:"transaction.request.method: PATCH",language:"kuery"},label:"PATCH"},
+      {input:{query:"transaction.request.method: DELETE",language:"kuery"},label:"DELETE"},
+      {input:{query:"transaction.request.method: PUT",language:"kuery"},label:"PUT"}
+    ]}}
+  ]
+} | tostring')
+SS=$(search_source 'transaction.request.uri: /rest/workflows*')
+BODY=$(jq -n --arg vs "$VS" --arg ss "$SS" --argjson ref "$IDX_REF" \
+  '{attributes:{title:"Workflows - Por metodo HTTP",visState:$vs,uiStateJSON:"{}",description:"",
+    kibanaSavedObjectMeta:{searchSourceJSON:$ss}},references:[$ref]}')
+put_object visualization viz-workflows-by-method "$BODY"
+
+# --- Pie: por severidad ---
+VS=$(jq -nr '{
+  title:"Workflows - Por severidad", type:"pie",
+  params:{type:"pie",addTooltip:true,addLegend:true,legendPosition:"right",isDonut:true,
+    labels:{show:false,values:true,last_level:true,truncate:100}},
+  aggs:[
+    {id:"1",enabled:true,type:"count",schema:"metric",params:{}},
+    {id:"2",enabled:true,type:"filters",schema:"segment",params:{filters:[
+      {input:{query:"transaction.messages: { details.severity: \"0\" }",language:"kuery"},label:"0 - Emergency"},
+      {input:{query:"transaction.messages: { details.severity: \"1\" }",language:"kuery"},label:"1 - Alert"},
+      {input:{query:"transaction.messages: { details.severity: \"2\" }",language:"kuery"},label:"2 - Critical"},
+      {input:{query:"transaction.messages: { details.severity: \"3\" }",language:"kuery"},label:"3 - Error"},
+      {input:{query:"transaction.messages: { details.severity: \"4\" }",language:"kuery"},label:"4 - Warning"},
+      {input:{query:"transaction.messages: { details.severity: \"5\" }",language:"kuery"},label:"5 - Notice"}
+    ]}}
+  ]
+} | tostring')
+SS=$(search_source 'transaction.request.uri: /rest/workflows*')
+BODY=$(jq -n --arg vs "$VS" --arg ss "$SS" --argjson ref "$IDX_REF" \
+  '{attributes:{title:"Workflows - Por severidad",visState:$vs,uiStateJSON:"{}",description:"",
+    kibanaSavedObjectMeta:{searchSourceJSON:$ss}},references:[$ref]}')
+put_object visualization viz-workflows-severity "$BODY"
+
+# --- Dashboard: WAF - Workflows Bloqueados ---
+PANELS=$(jq -s '.' \
+  <(panel 1 0 0 24 8) \
+  <(panel 2 24 0 24 8) \
+  <(panel 3 0 8 24 16) \
+  <(panel 4 24 8 24 16) \
+  <(panel 5 0 24 24 16) \
+  <(panel 6 24 24 24 16) \
+  <(panel 7 0 40 48 20))
+REFS=$(jq -s '.' \
+  <(panel_ref 1 visualization viz-workflows-total) \
+  <(panel_ref 2 visualization viz-workflows-timeline) \
+  <(panel_ref 3 visualization viz-workflows-ruleids) \
+  <(panel_ref 4 visualization viz-workflows-endpoints) \
+  <(panel_ref 5 visualization viz-workflows-by-method) \
+  <(panel_ref 6 visualization viz-workflows-severity) \
+  <(panel_ref 7 search search-workflows-events))
+BODY=$(jq -n --argjson panels "$PANELS" --argjson refs "$REFS" '{
+  attributes:{
+    title:"WAF - Workflows Bloqueados",
+    hits:0,
+    description:("Identificacion de reglas CRS que afectan endpoints de workflows de n8n\n\nEndpoints monitoreados: /rest/workflows*\n\nExclusiones actualmente aplicadas:\n  /rest/workflows (POST) -> Rule 934200 (SSTI) Excluido\n  /rest/workflows/* (PATCH) -> Rule 911100 Excluido\n  /rest/workflows/* con HTML -> Rule 921130 Excluido\n\nATENCION: POST /rest/workflows dispara Rules 930120 y 942190 NO excluidas"),
+    panelsJSON:($panels|tostring),
+    optionsJSON:"{\"useMargins\":true,\"hidePanelTitles\":false}",
+    version:1,
+    timeRestore:true,
+    timeFrom:"now-24h",
+    timeTo:"now",
+    refreshInterval:{pause:false,value:10000},
+    kibanaSavedObjectMeta:{searchSourceJSON:"{\"query\":{\"query\":\"\",\"language\":\"kuery\"},\"filter\":[]}"}
+  },
+  references:$refs
+}')
+put_object dashboard dash-workflows-blocked "$BODY"
+
+echo "Listo. Dashboards disponibles: WAF - Resumen General, WAF - Severidad, WAF - Categorias de Ataque, WAF - Rule ID Ranking, WAF - Impacto en N8N, WAF - Workflows Bloqueados."
