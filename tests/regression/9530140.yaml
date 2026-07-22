@@ -2,7 +2,7 @@
 meta:
   author: "Facundo Piriz"
   description: "Tests de la regla 9530140"
-rule_id: 9530140
+rule_id: 9530160
 tests:
   - test_id: 1
     desc: "No activa la regla 941110 para una plantilla HTML de un workflow de n8n"
