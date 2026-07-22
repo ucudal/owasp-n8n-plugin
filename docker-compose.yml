@@ -187,6 +187,8 @@ services:
     depends_on:
       opensearch:
         condition: service_healthy
+      opensearch-init:
+        condition: service_completed_successfully
     networks:
       - logging_network
 
