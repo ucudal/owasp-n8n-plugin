@@ -1,11 +1,9 @@
 services:
   apache:
     volumes:
-      - ../../rules/REQUEST-900-EXCLUSION-RULES-BEFORE-CRS.conf:/opt/owasp-crs/plugins/n8n-before.conf:ro
-      - ../../rules/RESPONSE-999-EXCLUSION-RULES-AFTER-CRS.conf:/opt/owasp-crs/plugins/n8n-after.conf:ro
+      - ../runtime-plugins:/opt/owasp-crs/plugins:ro
 
   nginx:
     image: owasp/modsecurity-crs:4.28.0-nginx-202607100407
     volumes:
-      - ../../rules/REQUEST-900-EXCLUSION-RULES-BEFORE-CRS.conf:/opt/owasp-crs/plugins/n8n-before.conf:ro
-      - ../../rules/RESPONSE-999-EXCLUSION-RULES-AFTER-CRS.conf:/opt/owasp-crs/plugins/n8n-after.conf:ro
+      - ../runtime-plugins:/opt/owasp-crs/plugins:ro

@@ -50,6 +50,14 @@ jobs:
         run: |
           mkdir -p "tests/logs/${BACKEND}"
           chmod a+rw "tests/logs/${BACKEND}"
+
+          mkdir -p tests/runtime-plugins
+          cp -R plugins/. tests/runtime-plugins/
+          cp rules/REQUEST-900-EXCLUSION-RULES-BEFORE-CRS.conf \
+            tests/runtime-plugins/n8n-before.conf
+          cp rules/RESPONSE-999-EXCLUSION-RULES-AFTER-CRS.conf \
+            tests/runtime-plugins/n8n-after.conf
+
           docker compose \
             -f tests/integration/docker-compose.yml \
             -f tests/integration/docker-compose.override.yml \
