@@ -1,0 +1,9 @@
+services:
+  apache:
+    volumes:
+      - ../runtime-plugins:/opt/owasp-crs/plugins:ro
+
+  nginx:
+    image: owasp/modsecurity-crs:4.28.0-nginx-202607100407
+    volumes:
+      - ../runtime-plugins:/opt/owasp-crs/plugins:ro
