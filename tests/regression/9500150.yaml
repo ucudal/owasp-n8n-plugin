@@ -1,0 +1,57 @@
+---
+meta:
+  author: "Martina Laventure"
+  description: "Regression tests for the Merge SQL Query exclusion rule"
+rule_id: 9500150
+tests:
+  - test_id: 1
+    desc: Ensure updating a workflow with a Merge SQL query does not trigger CRS rule 942100.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json
+            Content-Type: application/json
+          port: 80
+          method: PATCH
+          uri: /rest/workflows/a86k8M752g3Ds7U4
+          version: HTTP/1.1
+          data: |
+            {
+              "nodes": [
+                {
+                  "parameters": {
+                    "mode": "combineBySql",
+                    "query": "SELECT input1.customerId, input1.name, input2.status FROM input1 LEFT JOIN input2 ON input1.customerId = input2.customerId WHERE input1.active = true ORDER BY input1.name ASC"
+                  },
+                  "type": "n8n-nodes-base.merge"
+                }
+              ]
+            }
+        output:
+          log:
+            no_expect_ids: [942100]
+
+  - test_id: 2
+    desc: Ensure CRS rule 942100 remains active for SQL content outside the Merge query parameter.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json
+            Content-Type: application/json
+          port: 80
+          method: PATCH
+          uri: /rest/workflows/a86k8M752g3Ds7U4
+          version: HTTP/1.1
+          data: |
+            {
+              "untrustedInput": "SELECT input1.customerId, input1.name, input2.status FROM input1 LEFT JOIN input2 ON input1.customerId = input2.customerId WHERE input1.active = true ORDER BY input1.name ASC"
+            }
+        output:
+          log:
+            expect_ids: [942100]
