@@ -48,7 +48,7 @@ tests:
         output:
           log:
             no_expect_ids: [921130]
-    - test_id: 3
+  - test_id: 3
     desc: Ensure rule 921130 remains active when the workflow ID contains non-alphanumeric characters.
     stages:
       - input:
