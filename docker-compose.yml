@@ -30,6 +30,35 @@ services:
     networks:
       - protected_network
 
+  n8n-direct:
+    image: docker.n8n.io/n8nio/n8n:2.29.10
+    container_name: n8n-direct-app
+    restart: unless-stopped
+
+    environment:
+      N8N_HOST: localhost
+      N8N_PORT: 5678
+      N8N_PROTOCOL: http
+
+      N8N_EDITOR_BASE_URL: http://localhost:5679/
+      WEBHOOK_URL: http://localhost:5679/
+      N8N_PROXY_HOPS: 1
+
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
+      N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: "true"
+
+      GENERIC_TIMEZONE: America/Montevideo
+      TZ: America/Montevideo
+
+    ports:
+      - "5679:5678"
+
+    volumes:
+      - n8n_direct_data:/home/node/.n8n
+
+    networks:
+      - protected_network
+
   waf:
     image: owasp/modsecurity-crs:4.28.0-nginx-202607100407
     container_name: n8n-waf
@@ -55,8 +84,8 @@ services:
       MODSEC_AUDIT_LOG: /dev/stdout
       MODSEC_AUDIT_LOG_FORMAT: JSON
 
-      BLOCKING_PARANOIA: "0"
-      DETECTION_PARANOIA: "1"
+      BLOCKING_PARANOIA: "2"
+      DETECTION_PARANOIA: "2"
       ANOMALY_INBOUND: "5"
       ANOMALY_OUTBOUND: "4"
       REPORTING_LEVEL: "2"
@@ -180,6 +209,7 @@ services:
 
 volumes:
   n8n_data:
+  n8n_direct_data:
   opensearch_data:
 
 networks:

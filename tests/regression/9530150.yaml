@@ -1,0 +1,42 @@
+---
+meta:
+  author: "Eugenia Guibernau"
+  description: "Regression test for the workflows CSS/HTML exclusion rule"
+rule_id: 9530150
+tests:
+  - test_id: 1
+    desc: Ensure a CSS style block does not trigger CRS rule 941190.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+            Content-Type: application/json
+          port: 80
+          method: POST
+          uri: /rest/workflows
+          data: |
+            {"html":"<html><head><style>body{ font-family:Arial; background:url(logo.png) }</style></head><body>ok</body></html>"}
+        output:
+          log:
+            no_expect_ids: [941190]
+  - test_id: 2
+    desc: Ensure a workflows sub-path does not trigger CRS rule 941190.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+            Content-Type: application/json
+          port: 80
+          method: POST
+          uri: /rest/workflows/abc123
+          data: |
+            {"html":"<html><head><style>body{ font-family:Arial; background:url(logo.png) }</style></head><body>ok</body></html>"}
+        output:
+          log:
+            no_expect_ids: [941190]
