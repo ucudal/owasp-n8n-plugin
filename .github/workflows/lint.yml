@@ -1,4 +1,7 @@
-on: [push, pull_request]        # yamllint disable-line rule:truthy
+on:                            # yamllint disable-line rule:truthy
+  pull_request:
+  push:
+    branches: [main]
 name: Plugin lint
 
 permissions:
