@@ -1,0 +1,42 @@
+---
+meta:
+  author: "Eugenia Guibernau, Facundo Piriz"
+  description: "Regression test for the Read/Write Files path (../) exclusion"
+rule_id: 930110
+tests:
+  - test_id: 1
+    desc: Ensure a path with ../ does not trigger CRS rule 930110 (create).
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+            Content-Type: application/json
+          port: 80
+          method: POST
+          uri: /rest/workflows
+          data: |
+            {"nodes":[{"parameters":{"fileSelector":"/home/node/.n8n-files/reports/../archive/monthly-report.csv"}}]}
+        output:
+          log:
+            no_expect_ids: [930110]
+  - test_id: 2
+    desc: Ensure a path with ../ does not trigger CRS rule 930110 (update).
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+            Content-Type: application/json
+          port: 80
+          method: PATCH
+          uri: /rest/workflows/abc123
+          data: |
+            {"nodes":[{"parameters":{"fileSelector":"/home/node/.n8n-files/reports/../archive/monthly-report.csv"}}]}
+        output:
+          log:
+            no_expect_ids: [930110]
