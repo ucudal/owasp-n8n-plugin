@@ -1,0 +1,28 @@
+---
+meta:
+  author: "Benjamin Rielli"
+  description: "Regression test for the telemetry track exclusion"
+rule_id: 9530180
+tests:
+  - test_id: 1
+    desc: Ensure /rest/telemetry/proxy/v1/track does not trigger CRS SQLi rules on the PostHog cookie.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: "*/*"
+            Content-Type: application/json
+            AnonymousId: Y2U4YTRkNjMtYzFiYy00NDVjLWJmMzMtMWQ3NjZjNGZjMzQ3
+            Origin: http://localhost:8080
+            Authorization: Basic MXpQbjliZ1dQemxRYzBwOEdqMXVpSzZET1RuOg==
+            Cookie: device_token=da67baee-d03f-4350-ae58-b577f82430e6; rl_page_init_referrer=RudderEncrypt%3AU2FsdGVkX19WwFXejy7gipoyUXk%2BAQaScD7yXcK2O9o%3D; rl_page_init_referring_domain=RudderEncrypt%3AU2FsdGVkX19Wv0XeoGk8Bhll0XTLRalVGvf098WtxK4%3D; n8n-auth=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjcwMGRhMDljLTg5YmYtNGZhZC04NzQwLWQyNTg3YzY2YzYyMyIsImhhc2giOiJjOU5zVVNyVElwIiwiYnJvd3NlcklkIjoiaWFtUWxNSVlqN2Q3MzR4d0FzbW1uRHo5ZzQ5TDBCbVhzVXlWSDl3WU5RND0iLCJ1c2VkTWZhIjpmYWxzZSwiaWF0IjoxNzg0NTg2MTc1LCJleHAiOjE3ODUxOTA5NzV9.9AA6OGmJelzTQ0TOWM4xVtqF4bd_tIz0eR95HTbkqfI; rl_anonymous_id=RudderEncrypt%3AU2FsdGVkX1%2Bs9FdhYyAyoKiNV3oOrhX0%2FXLD8lU9vMVzpYMzEcm%2F60LaFf4UVngpjp1DTqMjPJakXSAYabw8wQ%3D%3D; rl_user_id=RudderEncrypt%3AU2FsdGVkX19Xm58SUjGHuxaoDvRZ7b0t78MaInOEC8fR1Ka%2BMr3iyQKgA%2Br7IlZ6BzEQnVXfRaxtHDVpiB%2B1VyE0L5G0wao%2Bm3wDirFdrYROG8%2B6y8Ba1D0MLs5XCOjRG%2FkmEM2RHutqaTGQBp4ClS2uEbEdBYAqozM7X0kvyZw%3D; rl_trait=RudderEncrypt%3AU2FsdGVkX1%2FCYeNKZ9VgHHzue%2BPDZqcZdjUbiq6fpjyGZi3wNuM%2Bqg%2BCxwus8N%2BokHE%2FXya0w01Z0FE%2FQ6vKm5hQl8%2Bsj75%2B2hzeYosvMZR%2B6VMB1%2F22VVE4k6kJfDEs1HeYP6wGrmLYi9EowRbZh%2BhuZQoKhylaw9y%2FXo5QhodECMjDMdjJR%2ByxRNXqF88tOKGJGtlmhA7KRGxDUq0pXg%3D%3D; ph_phc_kMstNfAgBcBkWSh6KdsgN09heqqNe5VNmalHP1Ni9Q4_posthog=%7B%22%24device_id%22%3A%2212044ace496091205de0b1815523c484234402500ae1379334c0a81b192ddf71%23700da09c-89bf-4fad-8740-d2587c66c623%22%2C%22distinct_id%22%3A%2212044ace496091205de0b1815523c484234402500ae1379334c0a81b192ddf71%23700da09c-89bf-4fad-8740-d2587c66c623%22%2C%22%24sesid%22%3A%5B1784842779958%2C%22019f90e5-b979-741e-af31-06a4a74ac1c6%22%2C1784842402168%5D%2C%22%24epp%22%3Atrue%2C%22%24initial_person_info%22%3A%7B%22r%22%3A%22%24direct%22%2C%22u%22%3A%22http%3A%2F%2Flocalhost%3A8080%2Fsetup%22%7D%2C%22%24user_state%22%3A%22anonymous%22%7D; rl_session=RudderEncrypt%3AU2FsdGVkX1%2FMTBTWbtIJ6HtpWQFQHmtAluGnDSFTmsacX4fBOOIfll7bEJhKc3kLw7rWliXrQNkY%2ByQhSnyzPE4YcotoXV4f%2Bs65tEYR%2BIsNOuHd%2Fid%2BSLb7JDpTkyLIIfA6aWcaYw1iGtyH16%2F7aw%3D%3D
+          port: 80
+          method: POST
+          uri: /rest/telemetry/proxy/v1/track
+          data: |
+            {"event":"workflow.created","source":"n8n"}
+        output:
+          log:
+            no_expect_ids: [942200, 942340, 942370]
