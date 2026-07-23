@@ -1,6 +1,6 @@
 ---
 meta:
-  author: "Facundo Píriz"
+  author: "Facundo Píriz and Clara Plateiro"
   description: "Regression tests for the workflow HTML exclusion rule"
 rule_id: 9500140
 tests:
@@ -48,3 +48,23 @@ tests:
         output:
           log:
             no_expect_ids: [921130]
+    - test_id: 3
+    desc: Ensure rule 921130 remains active when the workflow ID contains non-alphanumeric characters.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json
+            Content-Type: application/json
+          port: 80
+          method: PATCH
+          uri: /rest/workflows/test_Workflow123
+          data: |
+            {
+              "html": "<html><head><title>Test</title></head><body><h1>Workflow output</h1></body></html>"
+            }
+        output:
+          log:
+            expect_ids: [921130]
