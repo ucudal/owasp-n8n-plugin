@@ -1,0 +1,38 @@
+---
+meta:
+  author: "Facundo Píriz"
+  description: "Regression tests for the n8n PostHog cookie exclusion rule"
+rule_id: 9530151
+tests:
+  - test_id: 1
+    desc: Ensure refreshing the n8n dashboard does not trigger PL2 SQLi rules.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json,text/plain,*/*
+            Cookie: ph_phc_kMstNfAgBcBkWSh6KdsgN09heqqNe5VNmalHP1Ni9Q4_posthog=%7B%22%24device_id%22%3A%2212044ace496091205de0b1815523c484234402500ae1379334c0a81b192ddf71%23700da09c-89bf-4fad-8740-d2587c66c623%22%2C%22distinct_id%22%3A%2212044ace496091205de0b1815523c484234402500ae1379334c0a81b192ddf71%23700da09c-89bf-4fad-8740-d2587c66c623%22%2C%22%24sesid%22%3A%5B1784842779958%2C%22019f90e5-b979-741e-af31-06a4a74ac1c6%22%2C1784842402168%5D%2C%22%24epp%22%3Atrue%2C%22%24initial_person_info%22%3A%7B%22r%22%3A%22%24direct%22%2C%22u%22%3A%22http%3A%2F%2Flocalhost%3A8080%2Fsetup%22%7D%2C%22%24user_state%22%3A%22anonymous%22%7D
+          port: 80
+          method: GET
+          uri: /rest/ph/static/surveys.js.map
+        output:
+          log:
+            no_expect_ids: [942200, 942340, 942370, 949110]
+  - test_id: 2
+    desc: Ensure a cache-busting query does not bypass the dashboard exclusion.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json,text/plain,*/*
+            Cookie: ph_phc_kMstNfAgBcBkWSh6KdsgN09heqqNe5VNmalHP1Ni9Q4_posthog=%7B%22%24device_id%22%3A%2212044ace496091205de0b1815523c484234402500ae1379334c0a81b192ddf71%23700da09c-89bf-4fad-8740-d2587c66c623%22%2C%22distinct_id%22%3A%2212044ace496091205de0b1815523c484234402500ae1379334c0a81b192ddf71%23700da09c-89bf-4fad-8740-d2587c66c623%22%2C%22%24sesid%22%3A%5B1784842779958%2C%22019f90e5-b979-741e-af31-06a4a74ac1c6%22%2C1784842402168%5D%2C%22%24epp%22%3Atrue%2C%22%24initial_person_info%22%3A%7B%22r%22%3A%22%24direct%22%2C%22u%22%3A%22http%3A%2F%2Flocalhost%3A8080%2Fsetup%22%7D%2C%22%24user_state%22%3A%22anonymous%22%7D
+          port: 80
+          method: GET
+          uri: /rest/ph/static/surveys.js.map?v=20260723
+        output:
+          log:
+            no_expect_ids: [942200, 942340, 942370, 949110]
