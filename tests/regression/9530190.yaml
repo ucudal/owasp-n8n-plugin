@@ -1,56 +1,22 @@
 ---
 meta:
-  author: "Martina Laventure"
-  description: "Regression tests for the workflow list filter exclusions"
+  author: "Benjamin Rielli and Martina Laventure"
+  description: "Regression tests for the PostHog cookie exclusion rule"
 rule_id: 9530190
 tests:
   - test_id: 1
-    desc: Ensure filtering the workflow list does not trigger CRS rules 942200 and 942340.
+    desc: Ensure /rest/projects/my-projects does not trigger CRS SQLi rules on the PostHog cookie.
     stages:
       - input:
           dest_addr: 127.0.0.1
           headers:
             Host: localhost
             User-Agent: OWASP CRS
-            Accept: application/json
+            Accept: application/json, text/plain, */*
+            Cookie: device_token=da67baee-d03f-4350-ae58-b577f82430e6; ph_phc_kMstNfAgBcBkWSh6KdsgN09heqqNe5VNmalHP1Ni9Q4_posthog={"$device_id":"12044ace496091205de0b1815523c484234402500ae1379334c0a81b192ddf71#700da09c-89bf-4fad-8740-d2587c66c623","distinct_id":"12044ace496091205de0b1815523c484234402500ae1379334c0a81b192ddf71#700da09c-89bf-4fad-8740-d2587c66c623","$user_state":"anonymous"}
           port: 80
           method: GET
-          uri: /rest/workflows?includeScopes=true&filter=%7B%22query%22%3A%22942200%2C%20942340%2C%20942370%2C%20949110%22%2C%22isArchived%22%3Afalse%7D&skip=0&take=50
-          version: HTTP/1.1
+          uri: /rest/projects/my-projects
         output:
           log:
-            no_expect_ids: [942200, 942340]
-
-  - test_id: 2
-    desc: Ensure the SQLi rules remain active for the same filter outside the workflow list endpoint.
-    stages:
-      - input:
-          dest_addr: 127.0.0.1
-          headers:
-            Host: localhost
-            User-Agent: OWASP CRS
-            Accept: application/json
-          port: 80
-          method: GET
-          uri: /rest/credentials?filter=%7B%22query%22%3A%22942200%2C%20942340%2C%20942370%2C%20949110%22%2C%22isArchived%22%3Afalse%7D
-          version: HTTP/1.1
-        output:
-          log:
-            expect_ids: [942200, 942340]
-
-  - test_id: 3
-    desc: Ensure the SQLi rules remain active for non-GET requests to the workflow list endpoint.
-    stages:
-      - input:
-          dest_addr: 127.0.0.1
-          headers:
-            Host: localhost
-            User-Agent: OWASP CRS
-            Accept: application/json
-          port: 80
-          method: POST
-          uri: /rest/workflows?filter=%7B%22query%22%3A%22942200%2C%20942340%2C%20942370%2C%20949110%22%2C%22isArchived%22%3Afalse%7D
-          version: HTTP/1.1
-        output:
-          log:
-            expect_ids: [942200, 942340]
+            no_expect_ids: [942200, 942340, 942370]
