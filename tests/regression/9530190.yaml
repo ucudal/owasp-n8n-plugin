@@ -1,0 +1,56 @@
+---
+meta:
+  author: "Martina Laventure"
+  description: "Regression tests for the workflow list filter exclusions"
+rule_id: 9530190
+tests:
+  - test_id: 1
+    desc: Ensure filtering the workflow list does not trigger CRS rules 942200 and 942340.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json
+          port: 80
+          method: GET
+          uri: /rest/workflows?includeScopes=true&filter=%7B%22query%22%3A%22942200%2C%20942340%2C%20942370%2C%20949110%22%2C%22isArchived%22%3Afalse%7D&skip=0&take=50
+          version: HTTP/1.1
+        output:
+          log:
+            no_expect_ids: [942200, 942340]
+
+  - test_id: 2
+    desc: Ensure the SQLi rules remain active for the same filter outside the workflow list endpoint.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json
+          port: 80
+          method: GET
+          uri: /rest/credentials?filter=%7B%22query%22%3A%22942200%2C%20942340%2C%20942370%2C%20949110%22%2C%22isArchived%22%3Afalse%7D
+          version: HTTP/1.1
+        output:
+          log:
+            expect_ids: [942200, 942340]
+
+  - test_id: 3
+    desc: Ensure the SQLi rules remain active for non-GET requests to the workflow list endpoint.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json
+          port: 80
+          method: POST
+          uri: /rest/workflows?filter=%7B%22query%22%3A%22942200%2C%20942340%2C%20942370%2C%20949110%22%2C%22isArchived%22%3Afalse%7D
+          version: HTTP/1.1
+        output:
+          log:
+            expect_ids: [942200, 942340]
