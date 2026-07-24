@@ -1,6 +1,6 @@
 ---
 meta:
-  author: "Facundo Píriz"
+  author: "Facundo Piriz"
   description: "Regression tests for the n8n PostHog cookie exclusion rule"
 rule_id: 9530151
 tests:
