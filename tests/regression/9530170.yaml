@@ -1,6 +1,6 @@
 ---
 meta:
-  author: "Martina Laventure"
+  author: "Benjamin Rielli and Martina Laventure"
   description: "Regression tests for the workflow JavaScript exclusion rule"
 rule_id: 9530170
 tests:
