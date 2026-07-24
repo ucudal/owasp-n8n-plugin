@@ -60,7 +60,7 @@ tests:
             Content-Type: application/json
           port: 80
           method: PATCH
-          uri: /rest/workflows/test_Workflow123
+          uri: /rest/workflows/test.Workflow123
           data: |
             {
               "html": "<html><head><title>Test</title></head><body><h1>Workflow output</h1></body></html>"
@@ -68,3 +68,4 @@ tests:
         output:
           log:
             expect_ids: [921130]
+
