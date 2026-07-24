@@ -1,11 +1,11 @@
 ---
 meta:
-  author: "Benjamin Rielli"
-  description: "Regression tests for the workflow JavaScript exclusion rule"
-rule_id: 9530170
+  author: "Clara Plateiro"
+  description: "Regression tests for the Code node JavaScript exclusion"
+rule_id: 932130
 tests:
   - test_id: 1
-    desc: Ensure saving JavaScript in a workflow HTML template does not trigger CRS rule 941100.
+    desc: Ensure saving JavaScript in a Code node does not trigger CRS rule 932130.
     stages:
       - input:
           dest_addr: 127.0.0.1
@@ -17,23 +17,22 @@ tests:
           port: 80
           method: PATCH
           uri: /rest/workflows/testWorkflow123
-          version: HTTP/1.1
           data: |
             {
               "nodes": [
                 {
                   "parameters": {
-                    "html": "<html><body><script>alert('test')</script></body></html>"
+                    "jsCode": "return items.map((item) => ({ json: { nombre: item.json.nombre ?? \"Sin nombre\", total: Number(item.json.precio ?? 0) * Number(item.json.cantidad ?? 0), fecha: new Date().toISOString() } }));"
                   }
                 }
               ]
             }
         output:
           log:
-            no_expect_ids: [941100]
+            no_expect_ids: [932130]
 
   - test_id: 2
-    desc: Ensure CRS rule 941100 remains active outside the workflow update endpoint.
+    desc: Ensure rule 932130 remains active for JavaScript outside the jsCode parameter.
     stages:
       - input:
           dest_addr: 127.0.0.1
@@ -44,12 +43,17 @@ tests:
             Content-Type: application/json
           port: 80
           method: PATCH
-          uri: /rest/credentials/testCredential123
-          version: HTTP/1.1
+          uri: /rest/workflows/testWorkflow123
           data: |
             {
-              "html": "<html><body><script>alert('test')</script></body></html>"
+              "nodes": [
+                {
+                  "parameters": {
+                    "otherCode": "return items.map((item) => ({ json: { nombre: item.json.nombre ?? \"Sin nombre\" } }));"
+                  }
+                }
+              ]
             }
         output:
           log:
-            expect_ids: [941100]
+            expect_ids: [932130]
