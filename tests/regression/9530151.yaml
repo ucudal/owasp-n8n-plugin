@@ -1,7 +1,7 @@
 ---
 meta:
-  author: "Facundo Piriz"
-  description: "Regression tests for the n8n PostHog cookie exclusion rule"
+  author: "Facundo Píriz"
+  description: "Regression tests for the n8n dashboard PostHog cookie exclusion rule"
 rule_id: 9530151
 tests:
   - test_id: 1
@@ -17,9 +17,11 @@ tests:
           port: 80
           method: GET
           uri: /rest/ph/static/surveys.js.map
+          version: HTTP/1.1
         output:
           log:
             no_expect_ids: [942200, 942340, 942370, 949110]
+
   - test_id: 2
     desc: Ensure a cache-busting query does not bypass the dashboard exclusion.
     stages:
@@ -33,6 +35,7 @@ tests:
           port: 80
           method: GET
           uri: /rest/ph/static/surveys.js.map?v=20260723
+          version: HTTP/1.1
         output:
           log:
             no_expect_ids: [942200, 942340, 942370, 949110]
