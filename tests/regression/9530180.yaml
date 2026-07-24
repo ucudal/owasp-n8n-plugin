@@ -1,7 +1,7 @@
 ---
 meta:
-  author: "Benjamin Rielli"
-  description: "Regression test for the telemetry track exclusion"
+  author: "Benjamin Rielli and Martina Laventure"
+  description: "Regression tests for telemetry track and workflow file selector exclusions"
 rule_id: 9530180
 tests:
   - test_id: 1
@@ -26,3 +26,53 @@ tests:
         output:
           log:
             no_expect_ids: [942200, 942340, 942370]
+
+  - test_id: 2
+    desc: Ensure a file path in a Read/Write Files from Disk node does not trigger CRS rule 930100.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json
+            Content-Type: application/json
+          port: 80
+          method: POST
+          uri: /rest/workflows
+          version: HTTP/1.1
+          data: |
+            {
+              "nodes": [
+                {
+                  "parameters": {
+                    "fileSelector": "/home/node/../data/input.json"
+                  }
+                }
+              ]
+            }
+        output:
+          log:
+            no_expect_ids: [930100]
+
+  - test_id: 3
+    desc: Ensure CRS rule 930100 remains active outside the workflow creation endpoint.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json
+            Content-Type: application/json
+          port: 80
+          method: POST
+          uri: /rest/credentials
+          version: HTTP/1.1
+          data: |
+            {
+              "fileSelector": "/home/node/../data/input.json"
+            }
+        output:
+          log:
+            expect_ids: [930100]
