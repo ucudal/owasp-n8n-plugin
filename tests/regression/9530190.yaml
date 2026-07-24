@@ -1,6 +1,6 @@
 ---
 meta:
-  author: "Benjamin Rielli and Martina Laventure"
+  author: "Benjamin Rielli"
   description: "Regression tests for the PostHog cookie exclusion rule"
 rule_id: 9530190
 tests:
