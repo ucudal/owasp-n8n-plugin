@@ -2,7 +2,7 @@
 meta:
   author: "Franco"
   description: "Regression test for the workflows HTML <meta> exclusion rule"
-rule_id: 9530160
+rule_id: 9530200
 tests:
   - test_id: 1
     desc: Ensure an HTML template with <meta> does not trigger CRS rule 941160.
