@@ -1,0 +1,22 @@
+---
+meta:
+  author: "Eugenia Guibernau"
+  description: "Regression test for the PostHog cookie SQLi exclusion on the credentials listing"
+rule_id: 9530250
+tests:
+  - test_id: 1
+    desc: Ensure the PostHog cookie does not trigger CRS SQLi rules on the credentials listing (with query).
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json, text/plain, */*
+            Cookie: ph_phc_kMstNfAgBcBkWSh6KdsgN09heqqNe5VNmalHP1Ni9Q4_posthog={"$device_id":"12044ace496091205de0b1815523c484234402500ae1379334c0a81b192ddf71#700da09c-89bf-4fad-8740-d2587c66c623","distinct_id":"12044ace496091205de0b1815523c484234402500ae1379334c0a81b192ddf71#700da09c-89bf-4fad-8740-d2587c66c623","$user_state":"anonymous"}
+          port: 80
+          method: GET
+          uri: /rest/credentials?includeScopes=true&includeData=true&includeGlobal=true
+        output:
+          log:
+            no_expect_ids: [942200, 942340, 942370]
