@@ -52,7 +52,7 @@ tests:
             Cookie: 'g_state_other={"i_l":0,"i_ll":1784740722700,"i_b":"xTxtjzm58Zorv9VN78Ef5xctJzA+LT8VoezvWOqpyDU"}'
           port: 80
           method: GET
-          uri: /rest/ph/static/surveys.js.map
+          uri: /rest/workflows
           version: HTTP/1.1
         output:
           log:
