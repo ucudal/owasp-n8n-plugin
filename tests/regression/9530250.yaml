@@ -1,11 +1,11 @@
 ---
 meta:
   author: "Eugenia Guibernau"
-  description: "Regression test for the global PostHog cookie SQLi exclusion"
+  description: "Regression test for the PostHog cookie SQLi exclusion on the credentials listing"
 rule_id: 9530250
 tests:
   - test_id: 1
-    desc: Ensure the PostHog cookie does not trigger CRS SQLi rules.
+    desc: Ensure the PostHog cookie does not trigger CRS SQLi rules on the credentials listing (with query).
     stages:
       - input:
           dest_addr: 127.0.0.1
