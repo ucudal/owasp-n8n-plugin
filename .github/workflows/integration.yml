@@ -84,6 +84,12 @@ jobs:
           ./ftw check -d tests/regression
           ./ftw run -d tests/regression --show-failures-only
 
+      - name: Show WAF log on failure
+        if: failure()
+        run: |
+          echo "---- tests/logs/${{ matrix.backend }}/error.log (last 200 lines) ----"
+          tail -n 200 "tests/logs/${{ matrix.backend }}/error.log" || true
+
       - name: Tear down tests
         if: always()
         run: |
