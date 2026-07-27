@@ -24,4 +24,23 @@ tests:
           log:
             no_expect_ids: [942200, 942340, 942370, 949110]
 
-  
+  - test_id: 2
+    desc: >-
+      Control: the same JSON value under a DIFFERENT cookie name must still
+      trigger CRS SQLi rule 942200, proving the exclusion is scoped only to
+      the PostHog cookie and does not disable SQLi detection globally.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+            Cookie: >-
+              some_other_cookie=%7B%22%24device_id%22%3A%2212044ace496091205de0b1815523c484234402500ae1379334c0a81b192ddf71%23700da09c-89bf-4fad-8740-d2587c66c623%22%2C%22distinct_id%22%3A%2212044ace496091205de0b1815523c484234402500ae1379334c0a81b192ddf71%23700da09c-89bf-4fad-8740-d2587c66c623%22%7D
+          port: 80
+          method: GET
+          uri: /
+        output:
+          log:
+            expect_ids: [942200]
