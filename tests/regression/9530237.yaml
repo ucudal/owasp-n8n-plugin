@@ -1,0 +1,49 @@
+---
+meta:
+  author: "Clara Plateiro"
+  description: "Tests for rule 9530273"
+  enabled: true
+  name: "9530273.yaml"
+
+tests:
+  - test_title: 9530273-1
+    desc: "Rule 911100 must not trigger for legitimate PATCH requests used to create or update n8n tags"
+    stages:
+      - stage:
+          input:
+            dest_addr: "127.0.0.1"
+            port: 80
+            method: "PATCH"
+            uri: "/rest/tags/XJAjupTFvde9LXxa"
+            headers:
+              Host: "localhost"
+              Content-Type: "application/json"
+            data: |
+              {
+                "name": "prueba"
+              }
+          output:
+            log:
+              no_expect_ids:
+                - 911100
+
+  - test_title: 9530273-2
+    desc: "Rule 911100 must remain enabled for PATCH requests to unrelated endpoints"
+    stages:
+      - stage:
+          input:
+            dest_addr: "127.0.0.1"
+            port: 80
+            method: "PATCH"
+            uri: "/rest/users/test"
+            headers:
+              Host: "localhost"
+              Content-Type: "application/json"
+            data: |
+              {
+                "name": "prueba"
+              }
+          output:
+            log:
+              expect_ids:
+                - 911100
