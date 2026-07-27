@@ -1,7 +1,7 @@
 ---
 meta:
-  author: "Martina Laventure"
-  description: "Regression tests for the workflow file selector exclusion rule"
+  author: "Benjamin Rielli and Martina Laventure"
+  description: "Regression tests for workflow file selector exclusion"
 rule_id: 9530180
 tests:
   - test_id: 1
