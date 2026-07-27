@@ -1,11 +1,11 @@
 ---
 meta:
-  author: "Eugenia Guibernau"
-  description: "Regression test for the workflows SSTI exclusion rule"
-rule_id: 9530120
+  author: "Eugenia Guibernau, Facundo Piriz"
+  description: "Regression test for the Read/Write Files path (../) exclusion"
+rule_id: 930110
 tests:
   - test_id: 1
-    desc: Ensure a workflow expression does not trigger CRS rule 934200.
+    desc: Ensure a path with ../ does not trigger CRS rule 930110 (create).
     stages:
       - input:
           dest_addr: 127.0.0.1
@@ -18,12 +18,12 @@ tests:
           method: POST
           uri: /rest/workflows
           data: |
-            {"startDate":"={{ $today.minus(7, 'days') }}"}
+            {"nodes":[{"parameters":{"fileSelector":"/home/node/.n8n-files/reports/../archive/monthly-report.csv"}}]}
         output:
           log:
-            no_expect_ids: [934200]
+            no_expect_ids: [930110]
   - test_id: 2
-    desc: Ensure a workflows sub-path does not trigger CRS rule 934200.
+    desc: Ensure a path with ../ does not trigger CRS rule 930110 (update).
     stages:
       - input:
           dest_addr: 127.0.0.1
@@ -33,10 +33,10 @@ tests:
             Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
             Content-Type: application/json
           port: 80
-          method: POST
+          method: PATCH
           uri: /rest/workflows/abc123
           data: |
-            {"startDate":"={{ $today.minus(7, 'days') }}"}
+            {"nodes":[{"parameters":{"fileSelector":"/home/node/.n8n-files/reports/../archive/monthly-report.csv"}}]}
         output:
           log:
-            no_expect_ids: [934200]
+            no_expect_ids: [930110]

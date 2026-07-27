@@ -1,11 +1,11 @@
 ---
 meta:
-  author: "Benjamin Rielli"
-  description: "Regression tests for the workflow JavaScript exclusion rule"
-rule_id: 9530170
+  author: "Benjamin Rielli and Martina Laventure"
+  description: "Regression tests for workflow file selector exclusion"
+rule_id: 9530180
 tests:
   - test_id: 1
-    desc: Ensure saving JavaScript in a workflow HTML template does not trigger CRS rule 941100.
+    desc: Ensure a file path in a Read/Write Files from Disk node does not trigger CRS rule 930100.
     stages:
       - input:
           dest_addr: 127.0.0.1
@@ -15,25 +15,25 @@ tests:
             Accept: application/json
             Content-Type: application/json
           port: 80
-          method: PATCH
-          uri: /rest/workflows/testWorkflow123
+          method: POST
+          uri: /rest/workflows
           version: HTTP/1.1
           data: |
             {
               "nodes": [
                 {
                   "parameters": {
-                    "html": "<html><body><script>alert('test')</script></body></html>"
+                    "fileSelector": "/home/node/../data/input.json"
                   }
                 }
               ]
             }
         output:
           log:
-            no_expect_ids: [941100]
+            no_expect_ids: [930100]
 
   - test_id: 2
-    desc: Ensure CRS rule 941100 remains active outside the workflow update endpoint.
+    desc: Ensure CRS rule 930100 remains active outside the workflow creation endpoint.
     stages:
       - input:
           dest_addr: 127.0.0.1
@@ -43,13 +43,13 @@ tests:
             Accept: application/json
             Content-Type: application/json
           port: 80
-          method: PATCH
-          uri: /rest/credentials/testCredential123
+          method: POST
+          uri: /rest/credentials
           version: HTTP/1.1
           data: |
             {
-              "html": "<html><body><script>alert('test')</script></body></html>"
+              "fileSelector": "/home/node/../data/input.json"
             }
         output:
           log:
-            expect_ids: [941100]
+            expect_ids: [930100]
