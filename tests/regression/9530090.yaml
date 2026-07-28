@@ -82,3 +82,22 @@ tests:
         output:
           log:
             no_expect_ids: [932236, 932260, 942120, 942432, 949110]
+
+  - test_id: 5
+    desc: >-
+      Ensure the executions endpoint does not trigger SQL injection CRS rules
+      942200, 942340, 942370, and 949110 for GET requests with legitimate cookies.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)
+            Accept: application/json,text/plain,*/*
+            Cookie: 'g_state={"i_l":0,"i_ll":1784740722700,"i_b":"xTxtjzm58Zorv9VN78Ef5xctJzA+LT8VoezvWOqpyDU","i_e":{"enable_itp_optimization":24},"i_et":1784740722700}'
+          port: 80
+          method: GET
+          uri: /rest/executions/46
+        output:
+          log:
+            no_expect_ids: [942200, 942340, 942370, 949110]
