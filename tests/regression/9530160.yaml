@@ -1,6 +1,6 @@
 ---
 meta:
-  author: "Facundo Piriz"
+  author: "Facundo Piriz and José Varela"
   description: "Regression test for the workflow HTML template exclusion rule"
 rule_id: 9530160
 tests:

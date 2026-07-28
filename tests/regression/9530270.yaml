@@ -24,7 +24,7 @@ tests:
           data: data=eyJmb28iOiJiYXIifQ%3D%3D
         output:
           log:
-            no_expect_ids: [942200, 942340, 942370, 942420, 942421, 942490, 949110]
+            no_expect_ids: [942200, 942290, 942340, 942370, 942420, 942421, 942490, 949110]
 
   - test_id: 2
     desc: >-
@@ -46,7 +46,7 @@ tests:
           data: data=eyJmb28iOiJiYXIifQ%3D%3D
         output:
           log:
-            no_expect_ids: [942200, 942340, 942370, 942420, 942421, 942490, 949110]
+            no_expect_ids: [942200, 942290, 942340, 942370, 942420, 942421, 942490, 949110]
 
   - test_id: 3
     desc: >-

@@ -1,6 +1,6 @@
 ---
 meta:
-  author: "Facundo Píriz"
+  author: "Facundo Píriz and José Varela"
   description: "Regression tests for the PostHog feature flags parameter exclusions"
 rule_id: 9530090
 tests:
