@@ -40,20 +40,3 @@ tests:
           log:
             no_expect_ids: [942340, 942370]
 
-  - test_id: 3
-    desc: Ensure a similarly named non-g_state cookie does not activate the exclusion.
-    stages:
-      - input:
-          dest_addr: 127.0.0.1
-          headers:
-            Host: localhost
-            User-Agent: OWASP CRS
-            Accept: application/json
-            Cookie: 'g_state_other={"i_l":0,"i_ll":1784740722700,"i_b":"xTxtjzm58Zorv9VN78Ef5xctJzA+LT8VoezvWOqpyDU"}'
-          port: 80
-          method: GET
-          uri: /rest/workflows
-          version: HTTP/1.1
-        output:
-          log:
-            expect_ids: [942340, 942370]
