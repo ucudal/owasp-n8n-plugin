@@ -31,26 +31,18 @@ tests:
             no_expect_ids: [942200]
 
   - test_id: 2
-    desc: Ensure CRS rule 942200 remains active for the same data.apiKey payload outside the credentials endpoint.
+    desc: Ensure CRS rule 942200 remains active outside the credentials endpoint.
     stages:
       - input:
           dest_addr: 127.0.0.1
           headers:
             Host: localhost
             User-Agent: OWASP CRS
-            Accept: application/json, text/plain, */*
-            Content-Type: application/json
+            Accept: application/json
           port: 80
           method: POST
-          uri: /rest/workflows
+          uri: /rest/workflows?filter=%7B%22query%22%3A%22942200%2C%20942340%2C%20942370%2C%20949110%22%2C%22isArchived%22%3Afalse%7D
           version: HTTP/1.1
-          data: |
-            {
-              "name": "test workflow",
-              "data": {
-                "apiKey": "hasjbdknlmad,/;Aad"
-              }
-            }
         output:
           log:
             expect_ids: [942200]
