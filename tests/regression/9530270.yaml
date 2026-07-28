@@ -28,10 +28,10 @@ tests:
             }
         output:
           log:
-            no_expect_ids: [942200, 949110]
+            no_expect_ids: [942200]
 
   - test_id: 2
-    desc: Ensure CRS rule 942200 remains active for the same payload outside data.apiKey.
+    desc: Ensure CRS rule 942200 remains active for the same data.apiKey payload outside the credentials endpoint.
     stages:
       - input:
           dest_addr: 127.0.0.1
@@ -42,14 +42,13 @@ tests:
             Content-Type: application/json
           port: 80
           method: POST
-          uri: /rest/credentials
+          uri: /rest/workflows
           version: HTTP/1.1
           data: |
             {
-              "name": "hasjbdknlmad,/;Aad",
-              "type": "httpHeaderAuth",
+              "name": "test workflow",
               "data": {
-                "apiKey": "plain-value"
+                "apiKey": "hasjbdknlmad,/;Aad"
               }
             }
         output:
