@@ -44,7 +44,8 @@ tests:
   - test_id: 3
     desc: >-
       Ensure the workflow flags endpoint does not trigger CRS rules 932236,
-      932260, and 942120 for the base64 compression and data parameters.
+      932260, 942120, and 942432 for the base64 compression and data
+      parameters.
     stages:
       - input:
           dest_addr: 127.0.0.1
@@ -56,17 +57,16 @@ tests:
           port: 80
           method: POST
           uri: "/rest/ph/flags/?v=2&ver=1.407.2&compression=base64"
-          data: |
-            data=eyJmb28iOiJiYXIifQ%3D%3D
+          data: data=eyJmb28iOiJiYXIifQ%3D%3D
         output:
           log:
-            no_expect_ids: [932236, 932260, 942120, 949110]
+            no_expect_ids: [932236, 932260, 942120, 942432, 949110]
 
   - test_id: 4
     desc: >-
       Ensure the workflow flags endpoint without a trailing slash does not
-      trigger CRS rules 932236, 932260, and 942120 for the base64 compression
-      and data parameters.
+      trigger CRS rules 932236, 932260, 942120, and 942432 for the base64
+      compression and data parameters.
     stages:
       - input:
           dest_addr: 127.0.0.1
@@ -78,8 +78,7 @@ tests:
           port: 80
           method: POST
           uri: "/rest/ph/flags?v=2&ver=1.407.2&compression=base64"
-          data: |
-            data=eyJmb28iOiJiYXIifQ%3D%3D
+          data: data=eyJmb28iOiJiYXIifQ%3D%3D
         output:
           log:
-            no_expect_ids: [932236, 932260, 942120, 949110]
+            no_expect_ids: [932236, 932260, 942120, 942432, 949110]

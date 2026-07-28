@@ -21,11 +21,10 @@ tests:
           port: 80
           method: POST
           uri: /rest/ph/flags/?v=2&ver=1.407.2&compression=base64
-          data: |
-            data=eyJmb28iOiJiYXIifQ%3D%3D
+          data: data=eyJmb28iOiJiYXIifQ%3D%3D
         output:
           log:
-            no_expect_ids: [942200, 942340, 942370, 949110]
+            no_expect_ids: [942200, 942340, 942370, 942420, 942421, 942490, 949110]
 
   - test_id: 2
     desc: >-
@@ -44,11 +43,10 @@ tests:
           port: 80
           method: POST
           uri: /rest/ph/flags?v=2&ver=1.407.2&compression=base64
-          data: |
-            data=eyJmb28iOiJiYXIifQ%3D%3D
+          data: data=eyJmb28iOiJiYXIifQ%3D%3D
         output:
           log:
-            no_expect_ids: [942200, 942340, 942370, 949110]
+            no_expect_ids: [942200, 942340, 942370, 942420, 942421, 942490, 949110]
 
   - test_id: 3
     desc: >-
