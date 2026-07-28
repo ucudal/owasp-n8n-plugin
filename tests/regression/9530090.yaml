@@ -1,7 +1,7 @@
 ---
 meta:
   author: "Facundo Píriz"
-  description: "Regression tests for the workflow flags compression exclusion rule"
+  description: "Regression tests for the PostHog feature flags parameter exclusions"
 rule_id: 9530090
 tests:
   - test_id: 1
@@ -40,3 +40,46 @@ tests:
         output:
           log:
             no_expect_ids: [932260]
+
+  - test_id: 3
+    desc: >-
+      Ensure the workflow flags endpoint does not trigger CRS rules 932236,
+      932260, and 942120 for the base64 compression and data parameters.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json,text/plain,*/*
+            Content-Type: application/x-www-form-urlencoded
+          port: 80
+          method: POST
+          uri: "/rest/ph/flags/?v=2&ver=1.407.2&compression=base64"
+          data: |
+            data=eyJmb28iOiJiYXIifQ%3D%3D
+        output:
+          log:
+            no_expect_ids: [932236, 932260, 942120, 949110]
+
+  - test_id: 4
+    desc: >-
+      Ensure the workflow flags endpoint without a trailing slash does not
+      trigger CRS rules 932236, 932260, and 942120 for the base64 compression
+      and data parameters.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json,text/plain,*/*
+            Content-Type: application/x-www-form-urlencoded
+          port: 80
+          method: POST
+          uri: "/rest/ph/flags?v=2&ver=1.407.2&compression=base64"
+          data: |
+            data=eyJmb28iOiJiYXIifQ%3D%3D
+        output:
+          log:
+            no_expect_ids: [932236, 932260, 942120, 949110]
