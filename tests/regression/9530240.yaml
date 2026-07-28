@@ -37,7 +37,7 @@ tests:
             Cookie: "ph_phc_variableProjectToken_posthog=%7B%22%24device_id%22%3A%229e5bcce1254dbdea6fd73a3c3584c58dd82d886d2e2fd6d16ce8c4b05ddae9e3%236fe9a930-ab8f-4b74-9a66-d0818a1e2025%22%2C%22distinct_id%22%3A%229e5bcce1254dbdea6fd73a3c3584c58dd82d886d2e2fd6d16ce8c4b05ddae9e3%236fe9a930-ab8f-4b74-9a66-d0818a1e2025%22%2C%22%24sesid%22%3A%5B1785190567920%2C%22019fa59e-842a-7287-b23e-f2d35756fbd8%22%2C1785190057000%5D%2C%22%24epp%22%3Atrue%2C%22%24initial_person_info%22%3A%7B%22r%22%3A%22%24direct%22%2C%22u%22%3A%22http%3A%2F%2Flocalhost%3A8080%2Fsetup%22%7D%2C%22%24user_state%22%3A%22anonymous%22%7D"
           port: 80
           method: POST
-          uri: /rest/credentials
+          uri: /rest/workflows
           data: |
             {"license":"community"}
         output:
