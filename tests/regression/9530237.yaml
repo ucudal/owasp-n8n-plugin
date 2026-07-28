@@ -47,3 +47,35 @@ tests:
             log:
               expect_ids:
                 - 911100
+
+  - test_title: 9530273-2
+    desc: "Rule 911100 must not trigger for legitimate DELETE requests used to remove n8n tags"
+    stages:
+      - stage:
+          input:
+            dest_addr: "127.0.0.1"
+            port: 80
+            method: "DELETE"
+            uri: "/rest/tags/XJAjupTFvde9LXxa"
+            headers:
+              Host: "localhost"
+          output:
+            log:
+              no_expect_ids:
+                - 911100
+
+  - test_title: 9530273-4
+    desc: "Rule 911100 must remain enabled for DELETE requests to unrelated endpoints"
+    stages:
+      - stage:
+          input:
+            dest_addr: "127.0.0.1"
+            port: 80
+            method: "DELETE"
+            uri: "/rest/users/test"
+            headers:
+              Host: "localhost"
+          output:
+            log:
+              expect_ids:
+                - 911100
