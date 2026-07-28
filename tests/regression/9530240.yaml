@@ -1,6 +1,6 @@
 ---
 meta:
-  author: "Codex"
+  author: "José Varela"
   description: "Regression tests for the community license PostHog cookie exclusions"
 rule_id: 9530240
 tests:

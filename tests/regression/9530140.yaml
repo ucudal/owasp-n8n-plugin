@@ -1,6 +1,6 @@
 ---
 meta:
-  author: "Facundo Piriz"
+  author: "José Varela"
   description: "Regression test for the dynamic node parameter options exclusion rule"
 rule_id: 9530140
 tests:
