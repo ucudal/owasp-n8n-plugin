@@ -1,0 +1,51 @@
+---
+meta:
+  author: "Clara Plateiro"
+  description: "Tests for rule 9530297"
+  enabled: true
+  name: "9530297.yaml"
+
+tests:
+  - test_title: 9530297-1
+    desc: "Rules 942150 and 942410 must not trigger for the legitimate n8n Run time telemetry event"
+    stages:
+      - stage:
+          input:
+            dest_addr: "127.0.0.1"
+            port: 80
+            method: "POST"
+            uri: "/rest/telemetry/proxy/v1/track"
+            headers:
+              Host: "localhost"
+              Content-Type: "application/json"
+            data: |
+              {
+                "event": "User clicked Run time (avg.)"
+              }
+          output:
+            log:
+              no_expect_ids:
+                - 942150
+                - 942410
+
+  - test_title: 9530297-2
+    desc: "Rules 942150 and 942410 must remain enabled for the same payload on unrelated endpoints"
+    stages:
+      - stage:
+          input:
+            dest_addr: "127.0.0.1"
+            port: 80
+            method: "POST"
+            uri: "/test"
+            headers:
+              Host: "localhost"
+              Content-Type: "application/json"
+            data: |
+              {
+                "event": "User clicked Run time (avg.)"
+              }
+          output:
+            log:
+              expect_ids:
+                - 942150
+                - 942410
