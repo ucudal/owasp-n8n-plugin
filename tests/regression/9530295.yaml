@@ -1,0 +1,131 @@
+---
+meta:
+  author: "Mateo Tonkovic Lucas"
+  description: "Regression tests for the credential API key SQLi exclusion"
+rule_id: 9530295
+tests:
+  - test_id: 1
+    desc: Ensure a credential API key does not trigger CRS rule 942200 when creating credentials.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json
+            Content-Type: application/json
+          port: 80
+          method: POST
+          uri: /rest/credentials
+          version: HTTP/1.1
+          data: |
+            {
+              "name": "Example credential",
+              "type": "exampleApi",
+              "data": {
+                "apiKey": "client,'secret'"
+              }
+            }
+        output:
+          log:
+            no_expect_ids: [942200]
+
+  - test_id: 2
+    desc: Ensure a credential API key does not trigger CRS rule 942200 when updating credentials.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json
+            Content-Type: application/json
+          port: 80
+          method: PATCH
+          uri: /rest/credentials/credential-id
+          version: HTTP/1.1
+          data: |
+            {
+              "name": "Example credential",
+              "type": "exampleApi",
+              "data": {
+                "apiKey": "client,'secret'"
+              }
+            }
+        output:
+          log:
+            no_expect_ids: [911100, 942200]
+
+  - test_id: 3
+    desc: Ensure CRS rule 942200 remains active for other fields on the credentials endpoint.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json
+            Content-Type: application/json
+          port: 80
+          method: POST
+          uri: /rest/credentials
+          version: HTTP/1.1
+          data: |
+            {
+              "name": "client,'secret'",
+              "type": "exampleApi",
+              "data": {
+                "apiKey": "safe"
+              }
+            }
+        output:
+          log:
+            expect_ids: [942200]
+
+  - test_id: 4
+    desc: Ensure CRS rule 942200 remains active for API key fields on unrelated endpoints.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json
+            Content-Type: application/json
+          port: 80
+          method: POST
+          uri: /rest/workflows
+          version: HTTP/1.1
+          data: |
+            {
+              "data": {
+                "apiKey": "client,'secret'"
+              }
+            }
+        output:
+          log:
+            expect_ids: [942200]
+
+  - test_id: 5
+    desc: Ensure CRS method enforcement remains active for PATCH requests on unrelated endpoints.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json
+            Content-Type: application/json
+          port: 80
+          method: PATCH
+          uri: /rest/credentials-test/credential-id
+          version: HTTP/1.1
+          data: |
+            {
+              "data": {
+                "apiKey": "safe"
+              }
+            }
+        output:
+          log:
+            expect_ids: [911100]
