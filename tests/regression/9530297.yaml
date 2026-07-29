@@ -49,3 +49,60 @@ tests:
               expect_ids:
                 - 942150
                 - 942410
+  - test_title: 9530297-3
+    desc: "SQL injection rules must not trigger for legitimate workflow execution telemetry"
+    stages:
+      - stage:
+          input:
+            dest_addr: "127.0.0.1"
+            port: 80
+            method: "POST"
+            uri: "/rest/telemetry/proxy/v1/track"
+            headers:
+              Host: "localhost"
+              Content-Type: "application/json"
+            data: |
+              {
+                "event": "User clicked execute workflow button",
+                "properties": {
+                  "node_graph_string": "{\"node_types\":[\"n8n-nodes-base.scheduleTrigger\"],\"node_connections\":[],\"nodes\":{\"0\":{\"id\":\"db2051ac-d7f7-41c8-b6fe-3b6fae09fefa\",\"type\":\"n8n-nodes-base.scheduleTrigger\",\"version\":1.3,\"position\":[0,0]}},\"notes\":{\"0\":{\"overlapping\":false,\"position\":[-256,-32],\"height\":160,\"width\":240}},\"is_pinned\":false}"
+                }
+              }
+          output:
+            log:
+              no_expect_ids:
+                - 942200
+                - 942330
+                - 942340
+                - 942370
+                - 942380
+                - 942430
+
+  - test_title: 9530297-4
+    desc: "SQL injection rules must remain enabled for workflow telemetry fields on unrelated endpoints"
+    stages:
+      - stage:
+          input:
+            dest_addr: "127.0.0.1"
+            port: 80
+            method: "POST"
+            uri: "/test"
+            headers:
+              Host: "localhost"
+              Content-Type: "application/json"
+            data: |
+              {
+                "event": "User clicked execute workflow button",
+                "properties": {
+                  "node_graph_string": "{\"node_types\":[\"n8n-nodes-base.scheduleTrigger\"],\"node_connections\":[],\"nodes\":{\"0\":{\"id\":\"db2051ac-d7f7-41c8-b6fe-3b6fae09fefa\",\"type\":\"n8n-nodes-base.scheduleTrigger\",\"version\":1.3,\"position\":[0,0]}},\"notes\":{\"0\":{\"overlapping\":false,\"position\":[-256,-32],\"height\":160,\"width\":240}},\"is_pinned\":false}"
+                }
+              }
+          output:
+            log:
+              expect_ids:
+                - 942200
+                - 942330
+                - 942340
+                - 942370
+                - 942380
+                - 942430
