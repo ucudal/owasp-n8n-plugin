@@ -1,0 +1,95 @@
+---
+meta:
+  author: "José Varela"
+  description: "Regression tests for the PostHog feature flags cookie exclusion rule"
+rule_id: 9530360
+tests:
+  - test_id: 1
+    desc: >-
+      Ensure a PostHog cookie with a variable token does not trigger CRS SQLi
+      rules when loading feature flags.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json,text/plain,*/*
+            Content-Type: application/x-www-form-urlencoded
+            Cookie: >-
+              ph_phc_variableProjectToken_posthog=%7B%22%24device_id%22%3A%2212044ace496091205de0b1815523c484234402500ae1379334c0a81b192ddf71%23700da09c-89bf-4fad-8740-d2587c66c623%22%2C%22distinct_id%22%3A%2212044ace496091205de0b1815523c484234402500ae1379334c0a81b192ddf71%23700da09c-89bf-4fad-8740-d2587c66c623%22%2C%22%24sesid%22%3A%5B1784842404741%2C%22019f90e5-b979-741e-af31-06a4a74ac1c6%22%2C1784842402168%5D%2C%22%24epp%22%3Atrue%2C%22%24initial_person_info%22%3A%7B%22r%22%3A%22%24direct%22%2C%22u%22%3A%22http%3A%2F%2Flocalhost%3A8080%2Fsetup%22%7D%2C%22%24user_state%22%3A%22anonymous%22%7D
+          port: 80
+          method: POST
+          uri: /rest/ph/flags/?v=2&ver=1.407.2&compression=base64
+          data: data=eyJmb28iOiJiYXIifQ%3D%3D
+        output:
+          log:
+            no_expect_ids: [942200, 942290, 942340, 942370, 942420, 942421, 942490, 949110]
+
+  - test_id: 2
+    desc: >-
+      Ensure a PostHog cookie with a variable token is also excluded when the
+      feature flags endpoint does not have a trailing slash.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json,text/plain,*/*
+            Content-Type: application/x-www-form-urlencoded
+            Cookie: >-
+              ph_phc_anotherProjectToken_posthog=%7B%22%24device_id%22%3A%2212044ace496091205de0b1815523c484234402500ae1379334c0a81b192ddf71%23700da09c-89bf-4fad-8740-d2587c66c623%22%2C%22distinct_id%22%3A%2212044ace496091205de0b1815523c484234402500ae1379334c0a81b192ddf71%23700da09c-89bf-4fad-8740-d2587c66c623%22%2C%22%24sesid%22%3A%5B1784842404741%2C%22019f90e5-b979-741e-af31-06a4a74ac1c6%22%2C1784842402168%5D%2C%22%24epp%22%3Atrue%2C%22%24initial_person_info%22%3A%7B%22r%22%3A%22%24direct%22%2C%22u%22%3A%22http%3A%2F%2Flocalhost%3A8080%2Fsetup%22%7D%2C%22%24user_state%22%3A%22anonymous%22%7D
+          port: 80
+          method: POST
+          uri: /rest/ph/flags?v=2&ver=1.407.2&compression=base64
+          data: data=eyJmb28iOiJiYXIifQ%3D%3D
+        output:
+          log:
+            no_expect_ids: [942200, 942290, 942340, 942370, 942420, 942421, 942490, 949110]
+
+  - test_id: 3
+    desc: >-
+      Control: the PostHog cookie must still be inspected outside the feature
+      flags endpoint.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json,text/plain,*/*
+            Content-Type: application/x-www-form-urlencoded
+            Cookie: >-
+              ph_phc_variableProjectToken_posthog=%7B%22%24device_id%22%3A%2212044ace496091205de0b1815523c484234402500ae1379334c0a81b192ddf71%23700da09c-89bf-4fad-8740-d2587c66c623%22%2C%22distinct_id%22%3A%2212044ace496091205de0b1815523c484234402500ae1379334c0a81b192ddf71%23700da09c-89bf-4fad-8740-d2587c66c623%22%7D
+          port: 80
+          method: POST
+          uri: /
+          data: |
+            test=value
+        output:
+          log:
+            expect_ids: [942200]
+
+  - test_id: 4
+    desc: >-
+      Control: a similarly structured cookie with a non-PostHog name must
+      still be inspected on the feature flags endpoint.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json,text/plain,*/*
+            Content-Type: application/x-www-form-urlencoded
+            Cookie: >-
+              some_other_cookie=%7B%22%24device_id%22%3A%2212044ace496091205de0b1815523c484234402500ae1379334c0a81b192ddf71%23700da09c-89bf-4fad-8740-d2587c66c623%22%2C%22distinct_id%22%3A%2212044ace496091205de0b1815523c484234402500ae1379334c0a81b192ddf71%23700da09c-89bf-4fad-8740-d2587c66c623%22%7D
+          port: 80
+          method: POST
+          uri: /rest/ph/flags/?v=2&ver=1.407.2&compression=base64
+          data: |
+            data=test
+        output:
+          log:
+            expect_ids: [942200]
