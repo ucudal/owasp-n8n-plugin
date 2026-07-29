@@ -1,0 +1,108 @@
+---
+meta:
+  author: "Mateo Tonkovic Lucas"
+  description: "Regression tests for workflow save false positives"
+rule_id: 9530298
+tests:
+  - test_id: 1
+    desc: Ensure saving a workflow with credentials, expressions, labels, and condition values does not trigger CRS false positives.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json
+            Content-Type: application/json
+          port: 80
+          method: PATCH
+          uri: /rest/workflows/6vG1InD7d5TSlG04
+          version: HTTP/1.1
+          data: |
+            {
+              "nodes": [
+                {
+                  "name": "Manual trigger",
+                  "parameters": {},
+                  "type": "n8n-nodes-base.manualTrigger"
+                },
+                {
+                  "name": "Get a DONKI solar flare",
+                  "credentials": {
+                    "nasaApi": {
+                      "id": "abc123",
+                      "name": "NASA account"
+                    }
+                  },
+                  "parameters": {
+                    "additionalFields": {
+                      "startDate": "={{ $today.minus(7, 'days') }}"
+                    }
+                  },
+                  "type": "n8n-nodes-base.nasa"
+                },
+                {
+                  "name": "Check payload",
+                  "parameters": {
+                    "conditions": {
+                      "conditions": [
+                        {
+                          "leftValue": "={{ $json.query }}",
+                          "operation": "equals",
+                          "rightValue": "' SELECT *"
+                        }
+                      ]
+                    }
+                  },
+                  "type": "n8n-nodes-base.if"
+                }
+              ],
+              "connections": {}
+            }
+        output:
+          log:
+            no_expect_ids: [930120, 932200, 932236, 941380, 942190, 942200, 942362, 949110]
+
+  - test_id: 2
+    desc: Ensure these CRS rules remain active for the same payload outside workflow save routes.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json
+            Content-Type: application/json
+          port: 80
+          method: PATCH
+          uri: /rest/not-workflows/6vG1InD7d5TSlG04
+          version: HTTP/1.1
+          data: |
+            {
+              "nodes": [
+                {
+                  "name": "Get a DONKI solar flare",
+                  "credentials": {
+                    "nasaApi": {
+                      "id": "abc123",
+                      "name": "NASA account"
+                    }
+                  },
+                  "parameters": {
+                    "additionalFields": {
+                      "startDate": "={{ $today.minus(7, 'days') }}"
+                    },
+                    "conditions": {
+                      "conditions": [
+                        {
+                          "rightValue": "' SELECT *"
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+        output:
+          log:
+            expect_ids: [930120, 932236, 941380, 942190, 942200, 942362]
