@@ -1,0 +1,71 @@
+{
+  "name": "WAF Exclusion Rules Demo",
+  "nodes": [
+    {
+      "id": "e1a2b3c4-1234-5678-9abc-def012345678",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 300],
+      "parameters": {}
+    },
+    {
+      "id": "e2b3c4d5-2345-6789-abcd-ef0123456789",
+      "name": "HTML Template",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [280, 300],
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "htmlContent",
+              "value": "<meta charset=\"UTF-8\"><script>var x=1</script>"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "e3c4d5e6-3456-789a-bcde-f01234567890",
+      "name": "Code Node",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [560, 300],
+      "parameters": {
+        "jsCode": "return items.map(item => item.json);"
+      }
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTML Template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML Template": {
+      "main": [
+        [
+          {
+            "node": "Code Node",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "versionId": "00000000-0000-0000-0000-000000000001",
+  "active": false,
+  "settings": {},
+  "tags": [],
+  "staticData": null
+}
