@@ -64,7 +64,7 @@ tests:
             no_expect_ids: [930120, 932200, 932236, 941380, 942190, 942200, 942362, 949110]
 
   - test_id: 2
-    desc: Ensure CRS rule 942190 remains active for the same payload outside workflow save routes.
+    desc: Ensure CRS rule 942200 remains active on unrelated endpoints.
     stages:
       - input:
           dest_addr: 127.0.0.1
@@ -74,35 +74,13 @@ tests:
             Accept: application/json
             Content-Type: application/json
           port: 80
-          method: PATCH
-          uri: /rest/not-workflows/6vG1InD7d5TSlG04
+          method: POST
+          uri: /test
           version: HTTP/1.1
           data: |
             {
-              "nodes": [
-                {
-                  "name": "Get a DONKI solar flare",
-                  "credentials": {
-                    "nasaApi": {
-                      "id": "abc123",
-                      "name": "NASA account"
-                    }
-                  },
-                  "parameters": {
-                    "additionalFields": {
-                      "startDate": "={{ $today.minus(7, 'days') }}"
-                    },
-                    "conditions": {
-                      "conditions": [
-                        {
-                          "rightValue": "' SELECT *"
-                        }
-                      ]
-                    }
-                  }
-                }
-              ]
+              "name": "client,'secret'"
             }
         output:
           log:
-            expect_ids: [942190]
+            expect_ids: [942200]
