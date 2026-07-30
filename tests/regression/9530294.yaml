@@ -29,7 +29,7 @@ tests:
             no_expect_ids: [930120]
 
   - test_id: 2
-    desc: Ensure CRS rule 930120 remains active for the same field name on unrelated endpoints.
+    desc: Ensure CRS rule 930120 remains active for LFI payloads on unrelated endpoints.
     stages:
       - input:
           dest_addr: 127.0.0.1
@@ -40,13 +40,11 @@ tests:
             Content-Type: application/json
           port: 80
           method: POST
-          uri: /rest/workflows
+          uri: /test
           version: HTTP/1.1
           data: |
             {
-              "credentials": {
-                "isGlobal": false
-              }
+              "path": "/etc/passwd"
             }
         output:
           log:
