@@ -1,0 +1,101 @@
+---
+meta:
+  author: "Mateo Tonkovic Lucas"
+  description: "Regression tests for workflow credential and condition false positives"
+rule_id: 9530300
+tests:
+  - test_id: 1
+    desc: Ensure creating a workflow with credentials and SQL-like condition text does not trigger CRS false positives.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json
+            Content-Type: application/json
+          port: 80
+          method: POST
+          uri: /rest/workflows
+          version: HTTP/1.1
+          data: |
+            {
+              "nodes": [
+                {
+                  "credentials": {
+                    "nasaApi": {
+                      "id": "credential-id",
+                      "name": "NASA account"
+                    }
+                  }
+                },
+                {
+                  "parameters": {
+                    "conditions": {
+                      "conditions": [
+                        {
+                          "leftValue": "query",
+                          "rightValue": "' SELECT *"
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+        output:
+          log:
+            no_expect_ids: [930120, 942190]
+
+  - test_id: 2
+    desc: Ensure updating a workflow with credential metadata does not trigger CRS rule 930120.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json
+            Content-Type: application/json
+          port: 80
+          method: PATCH
+          uri: /rest/workflows/DqR1zqnDaxAdc3Mi
+          version: HTTP/1.1
+          data: |
+            {
+              "nodes": [
+                {
+                  "credentials": {
+                    "nasaApi": {
+                      "id": "credential-id",
+                      "name": "NASA account"
+                    }
+                  }
+                }
+              ]
+            }
+        output:
+          log:
+            no_expect_ids: [930120]
+
+  - test_id: 3
+    desc: Ensure CRS rule 942190 remains active for SQL-like text outside n8n condition values.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json
+            Content-Type: application/json
+          port: 80
+          method: POST
+          uri: /rest/workflows
+          version: HTTP/1.1
+          data: |
+            {
+              "untrustedInput": "' SELECT *"
+            }
+        output:
+          log:
+            expect_ids: [942190]
