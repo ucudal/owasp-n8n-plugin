@@ -1,0 +1,53 @@
+---
+meta:
+  author: "Mateo Tonkovic Lucas"
+  description: "Regression tests for the credential test LFI false positive"
+rule_id: 9530298
+tests:
+  - test_id: 1
+    desc: Ensure credential test payloads do not trigger CRS rule 930120 on json.credentials fields.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json
+            Content-Type: application/json
+          port: 80
+          method: POST
+          uri: /rest/credentials/test
+          version: HTTP/1.1
+          data: |
+            {
+              "credentials": {
+                "isGlobal": false
+              }
+            }
+        output:
+          log:
+            no_expect_ids: [930120]
+
+  - test_id: 2
+    desc: Ensure CRS rule 930120 remains active for the same field name on unrelated endpoints.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json
+            Content-Type: application/json
+          port: 80
+          method: POST
+          uri: /rest/workflows
+          version: HTTP/1.1
+          data: |
+            {
+              "credentials": {
+                "isGlobal": false
+              }
+            }
+        output:
+          log:
+            expect_ids: [930120]
