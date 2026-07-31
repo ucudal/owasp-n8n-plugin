@@ -1,0 +1,59 @@
+---
+meta:
+  author: "Martina Laventure"
+  description: "Regression tests for the workflow list PostHog cookie exclusions"
+rule_id: 9530310
+tests:
+  - test_id: 1
+    desc: Ensure a PostHog cookie with a variable token does not trigger SQLi rules on the workflow list endpoint.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json
+            Cookie: "ph_phc_variableProjectToken_posthog=%7B%22%24device_id%22%3A%22d86dc38b9df2337118124cf1671000763cdca623e7b51406545ac3adcdd27659%2388c8b6d6-0687-414a-a0bc-184691e2fa79%22%2C%22distinct_id%22%3A%22d86dc38b9df2337118124cf1671000763cdca623e7b51406545ac3adcdd27659%2388c8b6d6-0687-414a-a0bc-184691e2fa79%22%2C%22%24sesid%22%3A%5B1784932311727%2C%22019f9627-10f5-75c8-9d06-99284764448a%22%2C1784930570485%5D%2C%22%24epp%22%3Atrue%2C%22%24initial_person_info%22%3A%7B%22r%22%3A%22%24direct%22%2C%22u%22%3A%22http%3A%2F%2Flocalhost%3A8080%2Fhome%2Fworkflows%22%7D%2C%22%24user_state%22%3A%22anonymous%22%7D"
+          port: 80
+          method: GET
+          uri: /rest/workflows
+          version: HTTP/1.1
+        output:
+          log:
+            no_expect_ids: [942200, 942340, 942370]
+
+  - test_id: 2
+    desc: Ensure the SQLi rules remain active for a PostHog cookie outside the workflow list endpoint.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json
+            Cookie: "ph_phc_anotherProjectToken_posthog=%7B%22%24device_id%22%3A%22d86dc38b9df2337118124cf1671000763cdca623e7b51406545ac3adcdd27659%2388c8b6d6-0687-414a-a0bc-184691e2fa79%22%2C%22distinct_id%22%3A%22d86dc38b9df2337118124cf1671000763cdca623e7b51406545ac3adcdd27659%2388c8b6d6-0687-414a-a0bc-184691e2fa79%22%2C%22%24sesid%22%3A%5B1784932311727%2C%22019f9627-10f5-75c8-9d06-99284764448a%22%2C1784930570485%5D%2C%22%24epp%22%3Atrue%2C%22%24initial_person_info%22%3A%7B%22r%22%3A%22%24direct%22%2C%22u%22%3A%22http%3A%2F%2Flocalhost%3A8080%2Fhome%2Fworkflows%22%7D%2C%22%24user_state%22%3A%22anonymous%22%7D"
+          port: 80
+          method: GET
+          uri: /rest/credentials
+          version: HTTP/1.1
+        output:
+          log:
+            expect_ids: [942200, 942340, 942370]
+
+  - test_id: 3
+    desc: Ensure a similarly named non-PostHog cookie does not activate the exclusion.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json
+            Cookie: "ph_phc_variableProjectToken=%7B%22%24device_id%22%3A%22d86dc38b9df2337118124cf1671000763cdca623e7b51406545ac3adcdd27659%2388c8b6d6-0687-414a-a0bc-184691e2fa79%22%2C%22distinct_id%22%3A%22d86dc38b9df2337118124cf1671000763cdca623e7b51406545ac3adcdd27659%2388c8b6d6-0687-414a-a0bc-184691e2fa79%22%7D"
+          port: 80
+          method: GET
+          uri: /rest/workflows
+          version: HTTP/1.1
+        output:
+          log:
+            expect_ids: [942200, 942340, 942370]

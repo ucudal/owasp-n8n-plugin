@@ -1,11 +1,11 @@
 meta:
   author: "Clara Plateiro"
-  description: "Tests exclusion rule 9530248 for false positive 942330 on the n8n workflow filter"
+  description: "Tests exclusion rule 9530340 for false positive 942330 on the n8n workflow filter"
   enabled: true
-  name: "9530248"
+  name: "9530340"
 
 tests:
-  - test_title: 9530248-1
+  - test_title: 9530340-1
     desc: "Rule 942330 must not trigger for the workflow filter"
     stages:
       - stage:
@@ -20,7 +20,7 @@ tests:
           output:
             no_log_contains: 'id "942330"'
 
-  - test_title: 9530248-2
+  - test_title: 9530340-2
     desc: "Rule 942330 must remain active on unrelated endpoints"
     stages:
       - stage:

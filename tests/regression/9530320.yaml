@@ -1,12 +1,12 @@
 ---
 meta:
   author: "Clara Plateiro"
-  description: "Tests for rule 9530273"
+  description: "Tests for rule 9530320"
   enabled: true
-  name: "9530273.yaml"
+  name: "9530320.yaml"
 
 tests:
-  - test_title: 9530273-1
+  - test_title: 9530320-1
     desc: "Rule 911100 must not trigger for legitimate PATCH requests used to create or update n8n tags"
     stages:
       - stage:
@@ -27,7 +27,7 @@ tests:
               no_expect_ids:
                 - 911100
 
-  - test_title: 9530273-2
+  - test_title: 9530320-2
     desc: "Rule 911100 must remain enabled for PATCH requests to unrelated endpoints"
     stages:
       - stage:
@@ -48,7 +48,7 @@ tests:
               expect_ids:
                 - 911100
 
-  - test_title: 9530273-2
+  - test_title: 9530320-3
     desc: "Rule 911100 must not trigger for legitimate DELETE requests used to remove n8n tags"
     stages:
       - stage:
@@ -64,7 +64,7 @@ tests:
               no_expect_ids:
                 - 911100
 
-  - test_title: 9530273-4
+  - test_title: 9530320-4
     desc: "Rule 911100 must remain enabled for DELETE requests to unrelated endpoints"
     stages:
       - stage:
