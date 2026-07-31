@@ -1,65 +1,36 @@
 ---
 meta:
-  author: "José Varela"
-  description: "Regression tests for the community license PostHog cookie exclusions"
+  author: "Facundo Piriz and José Varela"
+  description: "Regression test for the workflow HTML template exclusion rule"
 rule_id: 9530240
 tests:
   - test_id: 1
-    desc: Ensure community license registration does not trigger SQLi rules on the PostHog cookie.
+    desc: "Ensure a workflow update containing a script tag does not trigger CRS rule 941110."
     stages:
       - input:
           dest_addr: 127.0.0.1
           headers:
             Host: localhost
-            User-Agent: OWASP CRS
-            Accept: application/json, text/plain, */*
-            Content-Type: application/json
-            Cookie: "ph_phc_variableProjectToken_posthog=%7B%22%24device_id%22%3A%229e5bcce1254dbdea6fd73a3c3584c58dd82d886d2e2fd6d16ce8c4b05ddae9e3%236fe9a930-ab8f-4b74-9a66-d0818a1e2025%22%2C%22distinct_id%22%3A%229e5bcce1254dbdea6fd73a3c3584c58dd82d886d2e2fd6d16ce8c4b05ddae9e3%236fe9a930-ab8f-4b74-9a66-d0818a1e2025%22%2C%22%24sesid%22%3A%5B1785190567920%2C%22019fa59e-842a-7287-b23e-f2d35756fbd8%22%2C1785190057000%5D%2C%22%24epp%22%3Atrue%2C%22%24initial_person_info%22%3A%7B%22r%22%3A%22%24direct%22%2C%22u%22%3A%22http%3A%2F%2Flocalhost%3A8080%2Fsetup%22%7D%2C%22%24user_state%22%3A%22anonymous%22%7D"
+            User-Agent: "OWASP CRS test agent"
+            Accept: "text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5"
+            Content-Type: "application/json"
           port: 80
-          method: POST
-          uri: /rest/license/enterprise/community-registered
+          method: PATCH
+          uri: /rest/workflows/testWorkflow123
+          version: HTTP/1.1
           data: |
-            {"license":"community"}
+            {
+              "nodes": [
+                {
+                  "parameters": {}
+                },
+                {
+                  "parameters": {
+                    "html": "<html><body><script>alert('test')</script></body></html>"
+                  }
+                }
+              ]
+            }
         output:
           log:
-            no_expect_ids: [942200, 942340, 942370]
-
-  - test_id: 2
-    desc: Ensure the SQLi rules remain active for the same PostHog cookie outside the community license endpoint.
-    stages:
-      - input:
-          dest_addr: 127.0.0.1
-          headers:
-            Host: localhost
-            User-Agent: OWASP CRS
-            Accept: application/json, text/plain, */*
-            Content-Type: application/json
-            Cookie: "ph_phc_variableProjectToken_posthog=%7B%22%24device_id%22%3A%229e5bcce1254dbdea6fd73a3c3584c58dd82d886d2e2fd6d16ce8c4b05ddae9e3%236fe9a930-ab8f-4b74-9a66-d0818a1e2025%22%2C%22distinct_id%22%3A%229e5bcce1254dbdea6fd73a3c3584c58dd82d886d2e2fd6d16ce8c4b05ddae9e3%236fe9a930-ab8f-4b74-9a66-d0818a1e2025%22%2C%22%24sesid%22%3A%5B1785190567920%2C%22019fa59e-842a-7287-b23e-f2d35756fbd8%22%2C1785190057000%5D%2C%22%24epp%22%3Atrue%2C%22%24initial_person_info%22%3A%7B%22r%22%3A%22%24direct%22%2C%22u%22%3A%22http%3A%2F%2Flocalhost%3A8080%2Fsetup%22%7D%2C%22%24user_state%22%3A%22anonymous%22%7D"
-          port: 80
-          method: POST
-          uri: /rest/credentials
-          data: |
-            {"license":"community"}
-        output:
-          log:
-            expect_ids: [942200, 942340, 942370]
-
-  - test_id: 3
-    desc: Ensure a similarly named non-PostHog cookie does not activate the exclusion.
-    stages:
-      - input:
-          dest_addr: 127.0.0.1
-          headers:
-            Host: localhost
-            User-Agent: OWASP CRS
-            Accept: application/json, text/plain, */*
-            Content-Type: application/json
-            Cookie: "ph_phc_variableProjectToken=%7B%22%24device_id%22%3A%229e5bcce1254dbdea6fd73a3c3584c58dd82d886d2e2fd6d16ce8c4b05ddae9e3%236fe9a930-ab8f-4b74-9a66-d0818a1e2025%22%2C%22distinct_id%22%3A%229e5bcce1254dbdea6fd73a3c3584c58dd82d886d2e2fd6d16ce8c4b05ddae9e3%236fe9a930-ab8f-4b74-9a66-d0818a1e2025%22%7D"
-          port: 80
-          method: POST
-          uri: /rest/license/enterprise/community-registered
-          data: |
-            {"license":"community"}
-        output:
-          log:
-            expect_ids: [942200, 942340, 942370]
+            no_expect_ids: [941110]

@@ -2,7 +2,7 @@
 meta:
   author: "Benjamin Rielli and Martina Laventure"
   description: "Regression tests for telemetry track PostHog cookie exclusion"
-rule_id: 9530145
+rule_id: 9530210
 tests:
   - test_id: 1
     desc: Ensure /rest/telemetry/proxy/v1/track does not trigger CRS SQLi rules on the PostHog cookie.

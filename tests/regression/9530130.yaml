@@ -3,7 +3,7 @@ meta:
   author: "Clara Plateiro"
   description: "Exclude rule 921130 when executing workflows containing HTML"
 
-rule_id: 9500177
+rule_id: 9530130
 
 tests:
   - test_id: 1

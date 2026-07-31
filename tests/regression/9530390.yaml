@@ -2,7 +2,7 @@
 meta:
   author: "Mateo Tonkovic Lucas"
   description: "Regression tests for the credential API key SQLi exclusion"
-rule_id: 9530295
+rule_id: 9530390
 tests:
   - test_id: 1
     desc: Ensure a credential API key does not trigger CRS rule 942200 when creating credentials.

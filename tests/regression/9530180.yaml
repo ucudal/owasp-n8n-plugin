@@ -1,55 +1,42 @@
 ---
 meta:
-  author: "Benjamin Rielli and Martina Laventure"
-  description: "Regression tests for workflow file selector exclusion"
+  author: "Eugenia Guibernau"
+  description: "Regression test for the workflows SSTI exclusion rule"
 rule_id: 9530180
 tests:
   - test_id: 1
-    desc: Ensure a file path in a Read/Write Files from Disk node does not trigger CRS rule 930100.
+    desc: Ensure a workflow expression does not trigger CRS rule 934200.
     stages:
       - input:
           dest_addr: 127.0.0.1
           headers:
             Host: localhost
             User-Agent: OWASP CRS
-            Accept: application/json
+            Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
             Content-Type: application/json
           port: 80
           method: POST
           uri: /rest/workflows
-          version: HTTP/1.1
           data: |
-            {
-              "nodes": [
-                {
-                  "parameters": {
-                    "fileSelector": "/home/node/../data/input.json"
-                  }
-                }
-              ]
-            }
+            {"startDate":"={{ $today.minus(7, 'days') }}"}
         output:
           log:
-            no_expect_ids: [930100]
-
+            no_expect_ids: [934200]
   - test_id: 2
-    desc: Ensure CRS rule 930100 remains active outside the workflow creation endpoint.
+    desc: Ensure a workflows sub-path does not trigger CRS rule 934200.
     stages:
       - input:
           dest_addr: 127.0.0.1
           headers:
             Host: localhost
             User-Agent: OWASP CRS
-            Accept: application/json
+            Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
             Content-Type: application/json
           port: 80
           method: POST
-          uri: /rest/credentials
-          version: HTTP/1.1
+          uri: /rest/workflows/abc123
           data: |
-            {
-              "fileSelector": "/home/node/../data/input.json"
-            }
+            {"startDate":"={{ $today.minus(7, 'days') }}"}
         output:
           log:
-            expect_ids: [930100]
+            no_expect_ids: [934200]
