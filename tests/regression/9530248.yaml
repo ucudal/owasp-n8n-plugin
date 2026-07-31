@@ -1,9 +1,11 @@
+---
 meta:
   author: "Clara Plateiro"
   description: "Tests exclusion rule 9530248 for false positive 942330 on the n8n workflow filter"
   enabled: true
-  name: "9530248"
+  name: "9530248.yaml"
 
+rule_id: 9530248
 tests:
   - test_title: 9530248-1
     desc: "Rule 942330 must not trigger for the workflow filter"

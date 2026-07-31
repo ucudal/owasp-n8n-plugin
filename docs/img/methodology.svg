@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 560" width="940" height="560" role="img" aria-label="A six-step empirical loop: observe, isolate, diagnose, scope, test, review. Each iteration produces one exclusion and one regression test.">
+  <title>Empirical methodology loop</title>
+  <style>
+    .bg   { fill: #ffffff; }
+    .ring { stroke: #d0d7de; fill: none; }
+    .node { fill: #f6f8fa; stroke: #d0d7de; }
+    .n1   { fill: #eef6ff; stroke: #0969da; }
+    .n4   { fill: #fff1f0; stroke: #d1242f; }
+    .n5   { fill: #f0f7f2; stroke: #1a7f37; }
+    .num  { fill: #59636e; font-weight: 700; }
+    .t    { fill: #1f2328; font-weight: 600; }
+    .s    { fill: #59636e; font-weight: 400; }
+    .ah   { fill: #656d76; }
+    .core { fill: #1f2328; font-weight: 700; }
+    .cores{ fill: #59636e; }
+    @media (prefers-color-scheme: dark) {
+      .bg    { fill: #0d1117; }
+      .ring  { stroke: #30363d; }
+      .node  { fill: #161b22; stroke: #30363d; }
+      .n1    { fill: #0d1d33; stroke: #58a6ff; }
+      .n4    { fill: #2a1113; stroke: #f85149; }
+      .n5    { fill: #0f2417; stroke: #3fb950; }
+      .num   { fill: #6e7681; }
+      .t     { fill: #e6edf3; }
+      .s     { fill: #8d96a0; }
+      .ah    { fill: #8d96a0; }
+      .core  { fill: #e6edf3; }
+      .cores { fill: #8d96a0; }
+    }
+  </style>
+
+  <rect class="bg" x="0" y="0" width="940" height="560" rx="10"/>
+
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+
+    <!-- guide ring -->
+    <ellipse class="ring" cx="470" cy="285" rx="270" ry="180" stroke-width="1.5" stroke-dasharray="6 7"/>
+
+    <!-- direction arrowheads on the ring (clockwise) -->
+    <g class="ah">
+      <path d="M0 -7 L14 0 L0 7 z" transform="translate(605,129) rotate(21.3)"/>
+      <path d="M0 -7 L14 0 L0 7 z" transform="translate(740,285) rotate(90)"/>
+      <path d="M0 -7 L14 0 L0 7 z" transform="translate(605,441) rotate(158.7)"/>
+      <path d="M0 -7 L14 0 L0 7 z" transform="translate(335,441) rotate(201.3)"/>
+      <path d="M0 -7 L14 0 L0 7 z" transform="translate(200,285) rotate(270)"/>
+      <path d="M0 -7 L14 0 L0 7 z" transform="translate(335,129) rotate(338.7)"/>
+    </g>
+
+    <!-- 1 OBSERVE (top) -->
+    <rect class="n1" x="360" y="72" width="220" height="76" rx="9" stroke-width="1.6"/>
+    <text class="num" x="378" y="98" font-size="12">01</text>
+    <text class="t" x="470" y="102" font-size="15" text-anchor="middle">OBSERVE</text>
+    <text class="s" x="470" y="122" font-size="12" text-anchor="middle">Exercise n8n through the WAF</text>
+    <text class="s" x="470" y="138" font-size="12" text-anchor="middle">in DetectionOnly mode</text>
+
+    <!-- 2 ISOLATE (upper right) -->
+    <rect class="node" x="628" y="160" width="220" height="76" rx="9" stroke-width="1.6"/>
+    <text class="num" x="646" y="186" font-size="12">02</text>
+    <text class="t" x="738" y="190" font-size="15" text-anchor="middle">ISOLATE</text>
+    <text class="s" x="738" y="210" font-size="12" text-anchor="middle">Replay against n8n-direct to</text>
+    <text class="s" x="738" y="226" font-size="12" text-anchor="middle">confirm the WAF is the cause</text>
+
+    <!-- 3 DIAGNOSE (lower right) -->
+    <rect class="node" x="628" y="336" width="220" height="76" rx="9" stroke-width="1.6"/>
+    <text class="num" x="646" y="362" font-size="12">03</text>
+    <text class="t" x="738" y="366" font-size="15" text-anchor="middle">DIAGNOSE</text>
+    <text class="s" x="738" y="386" font-size="12" text-anchor="middle">Identify rule ID, argument or</text>
+    <text class="s" x="738" y="402" font-size="12" text-anchor="middle">cookie, and endpoint</text>
+
+    <!-- 4 SCOPE (bottom) -->
+    <rect class="n4" x="360" y="424" width="220" height="76" rx="9" stroke-width="1.6"/>
+    <text class="num" x="378" y="450" font-size="12">04</text>
+    <text class="t" x="470" y="454" font-size="15" text-anchor="middle">SCOPE</text>
+    <text class="s" x="470" y="474" font-size="12" text-anchor="middle">Write the narrowest exclusion</text>
+    <text class="s" x="470" y="490" font-size="12" text-anchor="middle">that resolves it — never global</text>
+
+    <!-- 5 TEST (lower left) -->
+    <rect class="n5" x="92" y="336" width="220" height="76" rx="9" stroke-width="1.6"/>
+    <text class="num" x="110" y="362" font-size="12">05</text>
+    <text class="t" x="202" y="366" font-size="15" text-anchor="middle">TEST</text>
+    <text class="s" x="202" y="386" font-size="12" text-anchor="middle">go-ftw test that fails before</text>
+    <text class="s" x="202" y="402" font-size="12" text-anchor="middle">and passes after the exclusion</text>
+
+    <!-- 6 REVIEW (upper left) -->
+    <rect class="node" x="92" y="160" width="220" height="76" rx="9" stroke-width="1.6"/>
+    <text class="num" x="110" y="186" font-size="12">06</text>
+    <text class="t" x="202" y="190" font-size="15" text-anchor="middle">REVIEW</text>
+    <text class="s" x="202" y="210" font-size="12" text-anchor="middle">Peer review + CI green on</text>
+    <text class="s" x="202" y="226" font-size="12" text-anchor="middle">two WAF engines before merge</text>
+
+    <!-- centre -->
+    <text class="core" x="470" y="274" font-size="16" text-anchor="middle">One iteration =</text>
+    <text class="core" x="470" y="296" font-size="16" text-anchor="middle">one exclusion + one test</text>
+    <text class="cores" x="470" y="322" font-size="12.5" text-anchor="middle">no exclusion enters main untested</text>
+  </g>
+</svg>

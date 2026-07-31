@@ -1,10 +1,11 @@
 ---
 meta:
   author: "Clara Plateiro"
-  description: "Tests for rule 9530273"
+  description: "Tests for rule 9530237"
   enabled: true
-  name: "9530273.yaml"
+  name: "9530237.yaml"
 
+rule_id: 9530237
 tests:
   - test_title: 9530273-1
     desc: "Rule 911100 must not trigger for legitimate PATCH requests used to create or update n8n tags"

@@ -2,7 +2,7 @@
 meta:
   author: "Facundo Píriz"
   description: "Regression tests for the text/plain public hooks exclusion rule"
-rule_id: 9500120
+rule_id: 9530210
 tests:
   - test_id: 1
     desc: Ensure a text/plain request to a public hooks endpoint does not trigger CRS rule 920420.
