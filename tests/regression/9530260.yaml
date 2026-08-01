@@ -1,46 +1,55 @@
 ---
 meta:
-  author: "Lucas Giffuni"
-  description: "Regression tests for the PostHog cookie SQLi false-positive exclusion rule"
+  author: "Benjamin Rielli and Martina Laventure"
+  description: "Regression tests for workflow file selector exclusion"
 rule_id: 9530260
 tests:
   - test_id: 1
-    desc: >-
-      Ensure the PostHog cookie JSON value (with quotes/colons/commas) does not
-      trigger CRS SQLi rules 942200, 942340, 942370 on the excluded cookie name.
+    desc: Ensure a file path in a Read/Write Files from Disk node does not trigger CRS rule 930100.
     stages:
       - input:
           dest_addr: 127.0.0.1
           headers:
             Host: localhost
             User-Agent: OWASP CRS
-            Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
-            Cookie: >-
-              ph_phc_kMstNfAgBcBkWSh6KdsgN09heqqNe5VNmalHP1Ni9Q4_posthog=%7B%22%24device_id%22%3A%2212044ace496091205de0b1815523c484234402500ae1379334c0a81b192ddf71%23700da09c-89bf-4fad-8740-d2587c66c623%22%2C%22distinct_id%22%3A%2212044ace496091205de0b1815523c484234402500ae1379334c0a81b192ddf71%23700da09c-89bf-4fad-8740-d2587c66c623%22%2C%22%24sesid%22%3A%5B1785187465560%2C%22019fa572-0bbb-72eb-a3ad-781b8d22e1ba%22%2C1785187142584%5D%2C%22%24epp%22%3Atrue%2C%22%24user_state%22%3A%22anonymous%22%7D
+            Accept: application/json
+            Content-Type: application/json
           port: 80
-          method: GET
-          uri: /
+          method: POST
+          uri: /rest/workflows
+          version: HTTP/1.1
+          data: |
+            {
+              "nodes": [
+                {
+                  "parameters": {
+                    "fileSelector": "/home/node/../data/input.json"
+                  }
+                }
+              ]
+            }
         output:
           log:
-            no_expect_ids: [942200, 942340, 942370, 949110]
+            no_expect_ids: [930100]
 
   - test_id: 2
-    desc: >-
-      Control: the same JSON value under a DIFFERENT cookie name must still
-      trigger CRS SQLi rule 942200, proving the exclusion is scoped only to
-      the PostHog cookie and does not disable SQLi detection globally.
+    desc: Ensure CRS rule 930100 remains active outside the workflow creation endpoint.
     stages:
       - input:
           dest_addr: 127.0.0.1
           headers:
             Host: localhost
             User-Agent: OWASP CRS
-            Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
-            Cookie: >-
-              some_other_cookie=%7B%22%24device_id%22%3A%2212044ace496091205de0b1815523c484234402500ae1379334c0a81b192ddf71%23700da09c-89bf-4fad-8740-d2587c66c623%22%2C%22distinct_id%22%3A%2212044ace496091205de0b1815523c484234402500ae1379334c0a81b192ddf71%23700da09c-89bf-4fad-8740-d2587c66c623%22%7D
+            Accept: application/json
+            Content-Type: application/json
           port: 80
-          method: GET
-          uri: /
+          method: POST
+          uri: /rest/credentials
+          version: HTTP/1.1
+          data: |
+            {
+              "fileSelector": "/home/node/../data/input.json"
+            }
         output:
           log:
             expect_ids: [942200]

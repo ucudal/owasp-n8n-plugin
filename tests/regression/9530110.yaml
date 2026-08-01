@@ -1,21 +1,70 @@
 ---
 meta:
-  author: "Eugenia Guibernau"
-  description: "Regression test for the credentials endpoint exclusion rule"
+  author: "Facundo Píriz and Clara Plateiro"
+  description: "Regression tests for the workflow HTML exclusion rule"
 rule_id: 9530110
 tests:
   - test_id: 1
-    desc: Ensure the credentials endpoint does not trigger CRS rule 930130.
+    desc: Ensure saving HTML in an existing workflow does not trigger CRS rule 921130.
     stages:
       - input:
           dest_addr: 127.0.0.1
           headers:
             Host: localhost
             User-Agent: OWASP CRS
-            Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+            Accept: application/json
+            Content-Type: application/json
           port: 80
-          method: GET
-          uri: /types/credentials.json
+          method: PATCH
+          uri: /rest/workflows/testWorkflow123
+          data: |
+            {
+              "nodes": [
+                {
+                  "parameters": {
+                    "html": "<html><head><title>n8n template</title></head><body><h1>Workflow result</h1><p>Execution completed.</p></body></html>"
+                  }
+                }
+              ]
+            }
         output:
           log:
-            no_expect_ids: [930130]
+            no_expect_ids: [921130]
+  - test_id: 2
+    desc: Ensure saving HTML through a workflow path with a trailing slash does not trigger CRS rule 921130.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json
+            Content-Type: application/json
+          port: 80
+          method: PATCH
+          uri: /rest/workflows/testWorkflow123/
+          data: |
+            {"html":"<div><strong>Workflow output</strong><br>Completed successfully.</div>"}
+        output:
+          log:
+            no_expect_ids: [921130]
+  - test_id: 3
+    desc: Ensure rule 921130 remains active when the workflow ID contains non-alphanumeric characters.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json
+            Content-Type: application/json
+          port: 80
+          method: PATCH
+          uri: /rest/workflows/test.Workflow123
+          data: |
+            {
+              "html": "<html><head><title>Test</title></head><body><h1>Workflow output</h1></body></html>"
+            }
+        output:
+          log:
+            expect_ids: [921130]

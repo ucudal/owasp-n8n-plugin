@@ -1,13 +1,13 @@
 ---
 meta:
   author: "Clara Plateiro"
-  description: "Tests for rule 9530297"
+  description: "Tests for rule 9530410"
   enabled: true
-  name: "9530297.yaml"
+  name: "9530410.yaml"
 
 rule_id: 9530297
 tests:
-  - test_title: 9530297-1
+  - test_title: 9530410-1
     desc: "Rules 942150 and 942410 must not trigger for the legitimate n8n Run time telemetry event"
     stages:
       - stage:
@@ -29,7 +29,7 @@ tests:
                 - 942150
                 - 942410
 
-  - test_title: 9530297-2
+  - test_title: 9530410-2
     desc: "Rules 942150 and 942410 must remain enabled for the same payload on unrelated endpoints"
     stages:
       - stage:
@@ -50,7 +50,7 @@ tests:
               expect_ids:
                 - 942150
                 - 942410
-  - test_title: 9530297-3
+  - test_title: 9530410-3
     desc: "SQL injection rules must not trigger for legitimate workflow execution telemetry"
     stages:
       - stage:
@@ -79,7 +79,7 @@ tests:
                 - 942380
                 - 942430
 
-  - test_title: 9530297-4
+  - test_title: 9530410-4
     desc: "SQL injection rules must remain enabled for workflow telemetry fields on unrelated endpoints"
     stages:
       - stage:

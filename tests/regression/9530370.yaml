@@ -1,0 +1,22 @@
+---
+meta:
+  author: "Lucas Giffuni"
+  description: "Regression tests for the executions filter SQLi exclusion rule"
+rule_id: 9530370
+tests:
+  - test_id: 1
+    desc: Ensure filtering executions by workflowId/projectId does not trigger CRS rules 942200, 942340, 942430.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json
+          port: 80
+          method: GET
+          uri: /rest/executions?filter=%7B%22workflowId%22%3A%22gmd6dOTLW9eJChPP%22%2C%22projectId%22%3A%22FQNwQRKRh1PImksD%22%7D&limit=10
+          version: HTTP/1.1
+        output:
+          log:
+            no_expect_ids: [942200, 942340, 942430]

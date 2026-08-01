@@ -1,23 +1,41 @@
 ---
 meta:
-  author: "José Varela"
-  description: "Regression test for the dynamic node parameter options exclusion rule"
+  author: "Benjamin Rielli"
+  description: "Regression tests for the Google Analytics g_state cookie exclusion"
 rule_id: 9530140
 tests:
   - test_id: 1
-    desc: "Ensure the dynamic node parameter options endpoint does not trigger CRS rule 930120."
+    desc: Ensure a g_state cookie with JSON content does not trigger SQLi rules on any endpoint.
     stages:
       - input:
           dest_addr: 127.0.0.1
           headers:
             Host: localhost
-            User-Agent: "OWASP CRS test agent"
-            Accept: "text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5"
-            Content-Type: "application/json"
+            User-Agent: OWASP CRS
+            Accept: application/json
+            Cookie: 'g_state={"i_l":0,"i_ll":1784740722700,"i_b":"xTxtjzm58Zorv9VN78Ef5xctJzA+LT8VoezvWOqpyDU","i_e":{"enable_itp_optimization":24},"i_et":1784740722700}'
           port: 80
           method: GET
-          uri: /rest/dynamic-node-parameters/options
+          uri: /rest/ph/static/surveys.js.map
           version: HTTP/1.1
         output:
           log:
-            no_expect_ids: [930120]
+            no_expect_ids: [942340, 942370]
+
+  - test_id: 2
+    desc: Ensure a g_state cookie does not trigger SQLi rules globally across different endpoints.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json
+            Cookie: 'g_state={"i_l":0,"i_ll":1784740722700,"i_b":"xTxtjzm58Zorv9VN78Ef5xctJzA+LT8VoezvWOqpyDU","i_e":{"enable_itp_optimization":24},"i_et":1784740722700}'
+          port: 80
+          method: GET
+          uri: /rest/workflows
+          version: HTTP/1.1
+        output:
+          log:
+            no_expect_ids: [942340, 942370]
