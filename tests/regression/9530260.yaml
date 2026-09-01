@@ -52,7 +52,7 @@ tests:
             }
         output:
           log:
-            expect_ids: [942200]
+            expect_ids: [930100]
 
   - test_id: 3
     desc: >-
