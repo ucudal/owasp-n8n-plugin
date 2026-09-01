@@ -5,6 +5,7 @@ meta:
   enabled: true
   name: "9530410.yaml"
 
+rule_id: 9530297
 tests:
   - test_title: 9530410-1
     desc: "Rules 942150 and 942410 must not trigger for the legitimate n8n Run time telemetry event"

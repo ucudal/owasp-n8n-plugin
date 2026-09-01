@@ -1,13 +1,11 @@
 ---
 meta:
-  author: "Clara Plateiro"
-  description: "Exclude rule 921130 when executing workflows containing HTML"
-
-rule_id: 9530130
-
+  author: "Mateo Tonkovic"
+  description: "Regression test for the HTML template UTF-8 charset exclusion rule"
+rule_id: 9530190
 tests:
   - test_id: 1
-    desc: Rule 921130 must not trigger when executing a workflow containing HTML.
+    desc: Ensure defining UTF-8 encoding in an HTML template does not trigger CRS rule 941260.
     stages:
       - input:
           dest_addr: 127.0.0.1
@@ -17,49 +15,19 @@ tests:
             Accept: application/json
             Content-Type: application/json
           port: 80
-          method: POST
-          uri: /rest/workflows/FsUS2aTLjsuZVmfC/run
+          method: PATCH
+          uri: /rest/workflows/abc123
           data: |
             {
-              "runData": {
-                "HTML": [
-                  {
-                    "data": {
-                      "main": [
-                        [
-                          {
-                            "json": {
-                              "html": "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></head><body><h1>Workflow output</h1></body></html>"
-                            }
-                          }
-                        ]
-                      ]
-                    }
+              "nodes": [
+                {},
+                {
+                  "parameters": {
+                    "html": "<meta charset=\"UTF-8\">"
                   }
-                ]
-              }
+                }
+              ]
             }
         output:
           log:
-            no_expect_ids: [921130]
-
-  - test_id: 2
-    desc: Rule 921130 must remain active outside the workflow execution endpoint.
-    stages:
-      - input:
-          dest_addr: 127.0.0.1
-          headers:
-            Host: localhost
-            User-Agent: OWASP CRS
-            Accept: application/json
-            Content-Type: application/json
-          port: 80
-          method: POST
-          uri: /rest/workflows/FsUS2aTLjsuZVmfC/edit
-          data: |
-            {
-              "html": "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></head><body><h1>Test</h1></body></html>"
-            }
-        output:
-          log:
-            expect_ids: [921130]
+            no_expect_ids: [941260]

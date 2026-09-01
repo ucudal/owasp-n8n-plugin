@@ -53,3 +53,25 @@ tests:
         output:
           log:
             expect_ids: [930100]
+
+  - test_id: 3
+    desc: >-
+      Ensure the PostHog cookie does not trigger CRS SQLi rules on the
+      credentials listing endpoint with its real query string. Coverage
+      inherited from the superseded rule 9530250, which was replaced by
+      this rule.
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: application/json, text/plain, */*
+            Cookie: >-
+              ph_phc_kMstNfAgBcBkWSh6KdsgN09heqqNe5VNmalHP1Ni9Q4_posthog=%7B%22%24device_id%22%3A%2212044ace496091205de0b1815523c484234402500ae1379334c0a81b192ddf71%23700da09c-89bf-4fad-8740-d2587c66c623%22%2C%22distinct_id%22%3A%2212044ace496091205de0b1815523c484234402500ae1379334c0a81b192ddf71%23700da09c-89bf-4fad-8740-d2587c66c623%22%2C%22%24user_state%22%3A%22anonymous%22%7D
+          port: 80
+          method: GET
+          uri: /rest/credentials?includeScopes=true&includeData=true&includeGlobal=true
+        output:
+          log:
+            no_expect_ids: [942200, 942340, 942370]
